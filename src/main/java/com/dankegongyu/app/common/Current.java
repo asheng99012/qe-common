@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
 
-@Component
 public class Current implements Filter, ApplicationContextAware {
     private static ThreadLocal controllerContext = new ThreadLocal();
     private static final Logger logger = LoggerFactory.getLogger(Current.class);
