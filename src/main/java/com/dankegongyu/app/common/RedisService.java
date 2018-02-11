@@ -18,20 +18,20 @@ public class RedisService {
     @Autowired(required = false)
     private RedisTemplate redisTemplate;
 
-    @Value("${redis.disable:false}")
-    private Boolean disable;
+//    @Value("${redis.disable:false}")
+//    private Boolean disable;
 
     public RedisTemplate getRedisTemplate() {
         return redisTemplate;
     }
 
     public void set(String key, Object object) {
-        if (disable) return;
+//        if (disable) return;
         redisTemplate.opsForValue().set(key, object);
     }
 
     public void set(String key, Object object, int minute) {
-        if (disable) return;
+//        if (disable) return;
         redisTemplate.opsForValue().set(key, object, minute, TimeUnit.MINUTES);
     }
 
