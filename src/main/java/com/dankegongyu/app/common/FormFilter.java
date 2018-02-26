@@ -110,6 +110,7 @@ public class FormFilter {
     }
 
     private static String decode(String str) {
+        if (!Current.getRequest().getMethod().toUpperCase().equals("GET")) return str;
         if (StringUtils.isBlank(str)) return "";
         try {
             return URLDecoder.decode(str, "utf-8");
