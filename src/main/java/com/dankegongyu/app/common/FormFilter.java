@@ -150,7 +150,7 @@ public class FormFilter {
     private static Map<String, Object> getPostJson() {
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new InputStreamReader((ServletInputStream) Current.getRequest().getInputStream()));
+            br = new BufferedReader(new InputStreamReader((ServletInputStream) Current.getRequest().getInputStream(),"UTF-8"));
             String line = null;
             StringBuilder sb = new StringBuilder();
             while ((line = br.readLine()) != null) {

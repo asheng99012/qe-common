@@ -26,10 +26,11 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
     }
 
     public static ApiResult getErrorResult(Exception e) {
+        Current.sendErrorMsg(e);
         ApiResult result = new ApiResult("出错了，请稍后再试", 1);
-        if(e instanceof BaseException){
+        if (e instanceof BaseException) {
             result.setMsg(e.getMessage());
-            result.setStatus(((BaseException)e).getCode());
+            result.setStatus(((BaseException) e).getCode());
         }
         return result;
     }
@@ -37,10 +38,9 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
 
     @ExceptionHandler
     public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        if(ex instanceof ParameterException || ex instanceof NeedLoginException){
+        if (ex instanceof ParameterException || ex instanceof NeedLoginException) {
             logger.warn(ex.getMessage());
-        }
-        else{
+        } else {
             logger.error(ex.getMessage(), ex);
         }
         ex.printStackTrace();
@@ -53,6 +53,5 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
             return new ModelAndView("page/error");
         }
     }
-
 
 }

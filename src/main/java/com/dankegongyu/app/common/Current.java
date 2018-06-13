@@ -22,6 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
@@ -114,7 +116,7 @@ public class Current implements Filter, ApplicationContextAware {
             uuid = UUID19.randomUUID();
             set(UUID, uuid);
         }
-        setCookie(UUID, uuid,"/",12960000);
+        setCookie(UUID, uuid, "/", 12960000);
         return uuid;
     }
 
@@ -406,6 +408,7 @@ public class Current implements Filter, ApplicationContextAware {
             HttpServletRequest req = (HttpServletRequest) Current.getRequest();
             msg.add("参数信息为 : ");
             msg.add(JsonUtils.toJson(req.getParameterMap()));
+            msg.add(JsonUtils.toJson(FormFilter.getParameters()));
             msg.add("header信息为 : ");
             msg.add(JsonUtils.toJson(getHeaderInfo()));
             msg.add("cookie信息为 : ");
@@ -426,5 +429,16 @@ public class Current implements Filter, ApplicationContextAware {
                 map.put(key, request.getHeader(key));
         }
         return map;
+    }
+
+    public static void sendErrorMsg(Exception ex) {
+        String subject ="【报警】"+ Current.getLocalIP() + "      " + ex.getMessage();
+        String msg = subject + "\n<br />" + Current.getRequestOtherInfo();
+        Mailer mailer = Mailer.getMailer();
+        StringWriter stringWriter = new StringWriter();
+        ex.printStackTrace(new PrintWriter(stringWriter));
+        msg = msg + "<br />" + stringWriter.toString();
+        if (mailer != null)
+            mailer.sendMail(subject, msg);
     }
 }
