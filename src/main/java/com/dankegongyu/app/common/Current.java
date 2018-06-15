@@ -432,12 +432,13 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static void sendErrorMsg(Exception ex) {
-        String subject ="【报警】"+ Current.getLocalIP() + "      " + ex.getMessage();
+        String subject = "【报警】" + ex.getMessage() + "      " + Current.getLocalIP();
         String msg = subject + "\n<br />" + Current.getRequestOtherInfo();
         Mailer mailer = Mailer.getMailer();
         StringWriter stringWriter = new StringWriter();
         ex.printStackTrace(new PrintWriter(stringWriter));
         msg = msg + "<br />" + stringWriter.toString();
+        GlobalExceptionHandler.setCurrentThreadError(msg);
         if (mailer != null)
             mailer.sendMail(subject, msg);
     }

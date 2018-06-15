@@ -19,6 +19,20 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
     public static String currentSessionError = "currentSessionError";
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private static boolean isSendEmail = false;
+
+    public static void setCurrentThreadError(String msg) {
+        Current.set(GlobalExceptionHandler.class.getName() + ".CurrentThreadError", msg);
+    }
+
+    public static String getCurrentThreadError() {
+        return Current.get(GlobalExceptionHandler.class.getName() + ".CurrentThreadError");
+    }
+
+    public void setSendEmail(boolean sendEmail) {
+        GlobalExceptionHandler.isSendEmail = sendEmail;
+    }
+
     public static String getErrorMsg() {
         String error = Current.getSession(GlobalExceptionHandler.currentSessionError);
         Current.removeSession(GlobalExceptionHandler.currentSessionError);
@@ -26,7 +40,8 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
     }
 
     public static ApiResult getErrorResult(Exception e) {
-        Current.sendErrorMsg(e);
+        if (isSendEmail)
+            Current.sendErrorMsg(e);
         ApiResult result = new ApiResult("出错了，请稍后再试", 1);
         if (e instanceof BaseException) {
             result.setMsg(e.getMessage());
