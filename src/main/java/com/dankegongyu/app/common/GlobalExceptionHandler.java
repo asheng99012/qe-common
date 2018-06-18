@@ -33,6 +33,10 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         GlobalExceptionHandler.isSendEmail = sendEmail;
     }
 
+    public static boolean isIsSendEmail(){
+        return GlobalExceptionHandler.isSendEmail;
+    }
+
     public static String getErrorMsg() {
         String error = Current.getSession(GlobalExceptionHandler.currentSessionError);
         Current.removeSession(GlobalExceptionHandler.currentSessionError);

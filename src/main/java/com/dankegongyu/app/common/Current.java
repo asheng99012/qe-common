@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -365,6 +366,7 @@ public class Current implements Filter, ApplicationContextAware {
         Long start = new Date().getTime();
         try {
             logger.info(getRequestOtherInfo());
+            MDC.put("traceId", Current.getUUID());
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
             if (e instanceof ParameterException || e instanceof NeedLoginException) {

@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.OutputStreamAppender;
 import com.dankegongyu.app.common.Current;
 import com.dankegongyu.app.common.Mailer;
+import com.google.common.base.Charsets;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,14 +38,16 @@ public class SMTPAppender<E> extends OutputStreamAppender<E> {
             @Override
             public void write(byte b[], int off, int len) throws IOException {
                 ILoggingEvent event = threadLocalEvent.get();
-                if(event.getLevel().levelInt== Level.ERROR.levelInt){
+                if (event.getLevel().levelInt == Level.ERROR.levelInt) {
                     if (event != null && event.getLoggerName().indexOf("Mail") > 0) return;
-                    String log = new String(b);
+                    String log = new String(b, Charsets.UTF_8);
                     int i = log.indexOf("\n");
-                    String subject = projectName + "      " + log.substring(0, i);
+                    String subject = log.substring(0, i);
                     String msg = subject + "\n<br />" + Current.getRequestOtherInfo() + log.substring(i);
                     System.out.println(msg);
-                    Mailer.getMailer().sendMail(subject, msg);
+                    Mailer mailer = Mailer.getMailer();
+                    if (mailer != null)
+                        mailer.sendMail(subject, msg);
                 }
             }
 
