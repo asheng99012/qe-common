@@ -33,7 +33,7 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         GlobalExceptionHandler.isSendEmail = sendEmail;
     }
 
-    public static boolean isIsSendEmail(){
+    public static boolean isIsSendEmail() {
         return GlobalExceptionHandler.isSendEmail;
     }
 
@@ -44,8 +44,7 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
     }
 
     public static ApiResult getErrorResult(Exception e) {
-        if (isSendEmail)
-            Current.sendErrorMsg(e);
+        Current.sendErrorMsg(e);
         ApiResult result = new ApiResult("出错了，请稍后再试", 1);
         if (e instanceof BaseException) {
             result.setMsg(e.getMessage());
@@ -62,7 +61,6 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         } else {
             logger.error(ex.getMessage(), ex);
         }
-        ex.printStackTrace();
         ApiResult result = getErrorResult(ex);
         if (Current.isAjax()) {
             BaseController.writeJsonToClient(result);

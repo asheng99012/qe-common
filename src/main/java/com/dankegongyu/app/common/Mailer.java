@@ -41,7 +41,8 @@ public class Mailer extends JavaMailSenderImpl {
 
     //    @Async
     public void sendMail(String subject, String content) {
-        sendMail(subject, content, errorTo);
+        if (!Strings.isNullOrEmpty(errorTo))
+            sendMail(subject, content, errorTo);
     }
 
     //    @Async

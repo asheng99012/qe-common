@@ -365,8 +365,8 @@ public class Current implements Filter, ApplicationContextAware {
         setContext(req, res);
         Long start = new Date().getTime();
         try {
-            logger.info(getRequestOtherInfo());
             MDC.put("traceId", Current.getUUID());
+            logger.info(getRequestOtherInfo());
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
             if (e instanceof ParameterException || e instanceof NeedLoginException) {
@@ -389,11 +389,11 @@ public class Current implements Filter, ApplicationContextAware {
                 logger.error(e1.getMessage(), e1);
             }
 
-        }finally {
+        } finally {
+            logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
             MDC.clear();
+            remove();
         }
-        logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
-        remove();
     }
 
 
@@ -420,7 +420,7 @@ public class Current implements Filter, ApplicationContextAware {
         }
         msg.add("=======================================");
         msg.add("");
-        return StringUtils.join(msg, " \n<br />");
+        return StringUtils.join(msg, " <br />");
     }
 
     private static Map getHeaderInfo() {
@@ -437,7 +437,7 @@ public class Current implements Filter, ApplicationContextAware {
 
     public static void sendErrorMsg(Exception ex) {
         String subject = "【报警】" + ex.getMessage() + "      " + Current.getLocalIP();
-        String msg = subject + "\n<br />" + Current.getRequestOtherInfo();
+        String msg = subject + "<br />" + Current.getRequestOtherInfo();
         Mailer mailer = Mailer.getMailer();
         StringWriter stringWriter = new StringWriter();
         ex.printStackTrace(new PrintWriter(stringWriter));
