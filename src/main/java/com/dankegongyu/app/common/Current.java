@@ -436,7 +436,7 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static void sendErrorMsg(Exception ex) {
-        String subject = "【报警】" + ex.getMessage() + "      " + Current.getLocalIP();
+        String subject = "【报警】" + ex.getMessage() + ": " + MDC.get("traceId") + ":" + Current.getLocalIP();
         String msg = subject + "<br />" + Current.getRequestOtherInfo();
         Mailer mailer = Mailer.getMailer();
         StringWriter stringWriter = new StringWriter();
