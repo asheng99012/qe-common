@@ -389,6 +389,8 @@ public class Current implements Filter, ApplicationContextAware {
                 logger.error(e1.getMessage(), e1);
             }
 
+        }finally {
+            MDC.clear();
         }
         logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
         remove();
