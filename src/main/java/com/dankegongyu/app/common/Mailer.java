@@ -1,15 +1,23 @@
 package com.dankegongyu.app.common;
 
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
 import javax.mail.*;
 import javax.mail.internet.*;
+import javax.mail.util.ByteArrayDataSource;
 
+import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,31 +58,6 @@ public class Mailer extends JavaMailSenderImpl {
         sendMail(subject, content, to.split(","));
     }
 
-    //    @Async
-    public void sendMail_(String subject, String content, String[] tos) {
-        MimeMessage mimeMessage = this.createMimeMessage();
-        MimeMessageHelper helper = null;
-        try {
-            helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            if (Strings.isNullOrEmpty(fromName))
-                helper.setFrom(from);
-            else helper.setFrom(from, fromName);
-            helper.setSubject(subject);
-            helper.setTo(tos);
-            helper.setText(content, true);
-            helper.setSentDate(new Date());
-            this.send(mimeMessage);
-            logger.info("邮件发送成功：" + subject);
-        } catch (MessagingException e) {
-            logger.warn("邮件发送失败：" + e.getMessage(), e);
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            logger.warn("邮件发送失败：" + e.getMessage(), e);
-            e.printStackTrace();
-        }
-    }
-
-
     /**
      * @方法名: sendMail
      * @参数名：@param subject  邮件主题
@@ -82,8 +65,11 @@ public class Mailer extends JavaMailSenderImpl {
      * @参数名：@param to         收件人Email地址
      * @描述语: 发送邮件
      */
-
     public void sendMail(String subject, String content, String[] tos) {
+        sendMail(subject, content, null, tos);
+    }
+
+    public void sendMail(String subject, String content, Map<String, InputStream> ins, String[] tos) {
 
         try {
             final Message message = getMessage();
@@ -106,6 +92,19 @@ public class Mailer extends JavaMailSenderImpl {
             html.setContent(content.replaceAll("\\n", "<br />"), "text/html; charset=utf-8");
             mainPart.addBodyPart(html);
             // 将MiniMultipart对象设置为邮件内容
+            if (ins != null) {
+                ins.forEach((key, is) -> {
+                    try {
+                        MimeBodyPart part = new MimeBodyPart();
+                        part.setDataHandler(new DataHandler(new ByteArrayDataSource(is, "application/octet-stream")));
+                        part.setFileName(MimeUtility.encodeText(key));
+                        mainPart.addBodyPart(part);
+                    } catch (Exception e) {
+                        logger.error(e.getMessage(), e);
+                    }
+                });
+            }
+
             message.setContent(mainPart);
             Runnable runnable = new Runnable() {
                 public void run() {

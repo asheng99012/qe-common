@@ -365,7 +365,7 @@ public class Current implements Filter, ApplicationContextAware {
         setContext(req, res);
         Long start = new Date().getTime();
         try {
-            MDC.put("traceId", Current.getUUID());
+            MDC.put("traceId", UUID19.randomUUID());
             logger.info(getRequestOtherInfo());
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
