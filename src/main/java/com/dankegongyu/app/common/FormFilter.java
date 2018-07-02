@@ -150,13 +150,17 @@ public class FormFilter {
     private static Map<String, Object> getPostJson() {
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new InputStreamReader((ServletInputStream) Current.getRequest().getInputStream(),"UTF-8"));
+            br = new BufferedReader(new InputStreamReader((ServletInputStream) Current.getRequest().getInputStream(), "UTF-8"));
             String line = null;
             StringBuilder sb = new StringBuilder();
             while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
-            return JSON.parseObject(sb.toString());
+            String json = sb.toString();
+            if (json.startsWith("["))
+                json = "{\"data\":" + json + "}";
+            return JsonUtils.convert(json,Map.class);
+//            return JSON.parseObject(sb.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
