@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,16 @@ public class BaseController {
     public <T> T getModelFromParameter(Class<T> klass) {
         Map<String, Object> map = FormFilter.getParameters(true);
         return JsonUtils.convert(map, klass);
+    }
+
+    public <T> T getModelFromParameter(Class<T> klass,boolean filterBlank) {
+        Map<String, Object> map = FormFilter.getParameters(true);
+        Map<String, Object> data = new HashMap<>();
+        map.forEach((key, val) -> {
+            if (!(val instanceof String && val.toString().equals("")))
+                data.put(key, val);
+        });
+        return JsonUtils.convert(data, klass);
     }
 
     public static <T> T getParameter(String key) {
