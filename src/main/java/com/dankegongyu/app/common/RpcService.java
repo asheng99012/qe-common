@@ -1,5 +1,7 @@
 package com.dankegongyu.app.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.Map;
 public class RpcService {
     private static Map<String, KV> pairMap = new HashMap<>();
 
+    Logger logger = LoggerFactory.getLogger(RpcService.class);
+
     public Object run(Object[] fun, Object[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         KV kv = getObjectInfo(fun[0].toString(), fun[1].toString(), args.length);
         Object instanse = kv.getKey();
@@ -21,7 +25,8 @@ public class RpcService {
         for (int i = 0; i < args.length; i++) {
             params[i] = JsonUtils.convert(args[i], paramsTypes[i]);
         }
-
+        logger.info(instanse.getClass().getName() + "@" + method.getName());
+        logger.info(JsonUtils.toJson(params));
         Object ret = method.invoke(instanse, params);
         return ret;
     }
