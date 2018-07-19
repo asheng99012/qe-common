@@ -1,6 +1,7 @@
 package com.dankegongyu.app.common;
 
 import com.dankegongyu.app.common.exception.BaseException;
+import com.dankegongyu.app.common.exception.NeedEmailException;
 import com.dankegongyu.app.common.exception.NeedLoginException;
 import com.dankegongyu.app.common.exception.ParameterException;
 import com.dankegongyu.common.util.UUID19;
@@ -440,7 +441,7 @@ public class Current implements Filter, ApplicationContextAware {
         ex.printStackTrace(new PrintWriter(stringWriter));
         msg = msg + "<br />" + stringWriter.toString();
         GlobalExceptionHandler.setCurrentThreadError(msg);
-        if (mailer != null)
+        if ((!(ex instanceof BaseException) || ex instanceof NeedEmailException) && mailer != null)
             mailer.sendMail(subject, msg);
     }
 }

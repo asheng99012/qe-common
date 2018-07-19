@@ -59,10 +59,8 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
             result.setMsg(t.getMessage());
             result.setStatus(((BaseException) t).getCode());
         }
-        if (!(t instanceof BaseException) || t instanceof NeedEmailException)
-            Current.sendErrorMsg(t);
+        Current.sendErrorMsg(t);
         logger.error(t.getMessage(), t);
-        setCurrentThreadError(t.getMessage());
         return result;
     }
 
