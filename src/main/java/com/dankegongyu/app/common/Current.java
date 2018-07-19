@@ -440,7 +440,7 @@ public class Current implements Filter, ApplicationContextAware {
         ex.printStackTrace(new PrintWriter(stringWriter));
         msg = msg + "<br />" + stringWriter.toString();
         GlobalExceptionHandler.setCurrentThreadError(msg);
-        if (!(ex instanceof BaseException) && mailer != null)
+        if (mailer != null)
             mailer.sendMail(subject, msg);
     }
 }

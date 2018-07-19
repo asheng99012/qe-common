@@ -1,8 +1,7 @@
 package com.dankegongyu.app.common;
 
 import com.dankegongyu.app.common.exception.BaseException;
-import com.dankegongyu.app.common.exception.NeedLoginException;
-import com.dankegongyu.app.common.exception.ParameterException;
+import com.dankegongyu.app.common.exception.NeedEmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -59,9 +58,9 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         if (t instanceof BaseException) {
             result.setMsg(t.getMessage());
             result.setStatus(((BaseException) t).getCode());
-        } else {
-            Current.sendErrorMsg(t);
         }
+        if (!(t instanceof BaseException) || t instanceof NeedEmailException)
+            Current.sendErrorMsg(t);
         logger.error(t.getMessage(), t);
         setCurrentThreadError(t.getMessage());
         return result;
