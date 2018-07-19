@@ -160,7 +160,10 @@ public class FormFilter {
             if (json.startsWith("["))
                 json = "{\"data\":" + json + "}";
             if (!json.startsWith("{")) {
-                json = "{\"data\":\"" + json + "\"}";
+                if (json.startsWith("\""))
+                    json = "{\"data\":" + json + "}";
+                else
+                    json = "{\"data\":\"" + json + "\"}";
             }
             return JsonUtils.convert(json, Map.class);
 //            return JSON.parseObject(sb.toString());
