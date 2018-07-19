@@ -1,5 +1,6 @@
 package com.dankegongyu.app.common;
 
+import com.dankegongyu.app.common.exception.BaseException;
 import com.dankegongyu.app.common.exception.NeedLoginException;
 import com.dankegongyu.app.common.exception.ParameterException;
 import com.dankegongyu.common.util.UUID19;
@@ -369,11 +370,7 @@ public class Current implements Filter, ApplicationContextAware {
             logger.info(getRequestOtherInfo());
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
-            if (e instanceof ParameterException || e instanceof NeedLoginException) {
-                logger.warn(e.getMessage());
-            } else {
-                logger.error(e.getMessage(), e);
-            }
+            logger.error(e.getMessage(), e);
             ApiResult result = GlobalExceptionHandler.getErrorResult(e);
             try {
                 if (Current.isAjax()) {
@@ -435,7 +432,7 @@ public class Current implements Filter, ApplicationContextAware {
         return map;
     }
 
-    public static void sendErrorMsg(Exception ex) {
+    public static void sendErrorMsg(Throwable ex) {
         String subject = "【报警】" + ex.getMessage() + ": " + MDC.get("traceId") + ":" + Current.getLocalIP();
         String msg = subject + "<br />" + Current.getRequestOtherInfo();
         Mailer mailer = Mailer.getMailer();
@@ -443,7 +440,7 @@ public class Current implements Filter, ApplicationContextAware {
         ex.printStackTrace(new PrintWriter(stringWriter));
         msg = msg + "<br />" + stringWriter.toString();
         GlobalExceptionHandler.setCurrentThreadError(msg);
-        if (mailer != null)
+        if (!(ex instanceof BaseException) && mailer != null)
             mailer.sendMail(subject, msg);
     }
 }

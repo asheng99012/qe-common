@@ -43,24 +43,33 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         return error;
     }
 
-    public static ApiResult getErrorResult(Exception e) {
-        Current.sendErrorMsg(e);
-        ApiResult result = new ApiResult("出错了，请稍后再试", 1);
-        if (e instanceof BaseException) {
-            result.setMsg(e.getMessage());
-            result.setStatus(((BaseException) e).getCode());
+    public static Throwable getRealThrowable(Throwable e) {
+        Throwable t = e.getCause();
+        if (t == null) {
+            return e;
+        } else {
+            return getRealThrowable(t);
         }
+
+    }
+
+    public static ApiResult getErrorResult(Exception e) {
+        ApiResult result = new ApiResult("出错了，请稍后再试", 1);
+        Throwable t = getRealThrowable(e);
+        if (t instanceof BaseException) {
+            result.setMsg(t.getMessage());
+            result.setStatus(((BaseException) t).getCode());
+        } else {
+            Current.sendErrorMsg(t);
+        }
+        logger.error(t.getMessage(), t);
+        setCurrentThreadError(t.getMessage());
         return result;
     }
 
 
     @ExceptionHandler
     public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        if (ex instanceof ParameterException || ex instanceof NeedLoginException) {
-            logger.warn(ex.getMessage());
-        } else {
-            logger.error(ex.getMessage(), ex);
-        }
         ApiResult result = getErrorResult(ex);
         if (Current.isAjax()) {
             BaseController.writeJsonToClient(result);

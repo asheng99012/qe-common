@@ -159,7 +159,10 @@ public class FormFilter {
             String json = sb.toString();
             if (json.startsWith("["))
                 json = "{\"data\":" + json + "}";
-            return JsonUtils.convert(json,Map.class);
+            if (!json.startsWith("{")) {
+                json = "{\"data\":\"" + json + "\"}";
+            }
+            return JsonUtils.convert(json, Map.class);
 //            return JSON.parseObject(sb.toString());
         } catch (IOException e) {
             e.printStackTrace();
