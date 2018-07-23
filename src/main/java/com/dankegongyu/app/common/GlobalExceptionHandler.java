@@ -54,6 +54,7 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
 
     public static ApiResult getErrorResult(Exception e) {
         ApiResult result = new ApiResult("出错了，请稍后再试", 1);
+        logger.error(e.getMessage(), e);
         Throwable t = getRealThrowable(e);
         if (t instanceof BaseException) {
             result.setMsg(t.getMessage());
