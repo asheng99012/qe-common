@@ -10,71 +10,47 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NotNullWrap<T> implements MethodInterceptor {
-    private static Map<String, Field> fieldMap = new HashMap<>();
-    private static Map<String, Method> mhMap = new HashMap<>();
+public class NotNullWrap<T> extends LazyLoadBase {
 
-    protected T target;
-    public T proxy;
-
-    public T getTarget() {
-        return target;
+    public static <T> T warp(T obj) {
+        return (T) (new NotNullWrap().createProxy(obj));
     }
 
-    public T createProxy() {
+    public T createProxy(Class klass) {
+        return createProxy(null, klass);
+    }
+
+    public T createProxy(T obj) {
+        return createProxy(obj, obj.getClass());
+    }
+
+    public T createProxy(T obj, Class klass) {
+        this.target = obj;
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(target.getClass());
+        klass = getRealClass(klass);
+        enhancer.setSuperclass(klass);
         enhancer.setCallback(this);
-        enhancer.setClassLoader(target.getClass().getClassLoader());
-        proxy = (T) enhancer.create();
-        return proxy;
-    }
-
-    public void load(String... fileds) {
-        String filed;
-        try {
-            for (int i = 0; i < fileds.length; i++) {
-                filed = fileds[i];
-                setAndGetValue("get" + filed.substring(0, 1).toUpperCase() + filed.substring(1));
-            }
-        } catch (Throwable e) {
-            throw new NeedEmailException(e.getMessage(), e.getCause());
-        }
-
+        enhancer.setClassLoader(klass.getClassLoader());
+        return (T) enhancer.create();
     }
 
     @Override
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
-        Object result = methodProxy.invoke(this.target, objects);
-        if (result == null && method.getName().startsWith("get")) {
-            result = setAndGetValue(method.getName());
+        if (method.getName().startsWith("get")) {
+            Object ret = null;
+            if (this.target != null) {
+                ret = methodProxy.invoke(this.target, objects);
+            }
+            if (ret == null) {
+                Class klass = RealClass.getRealClass(method.getReturnType().getName());
+                if (klass.getName().startsWith("java."))
+                    ret = null;
+                else
+                    ret = createProxy(klass);
+            }
+            return ret;
+        } else {
+            return methodProxy.invoke(this.target, objects);
         }
-        return result;
-    }
-
-    public Field getTargetField(String filedName) throws NoSuchFieldException {
-        String key = target.getClass() + "." + filedName;
-        if (!fieldMap.containsKey(key)) {
-            Field field = target.getClass().getDeclaredField(filedName);
-            field.setAccessible(true);
-            fieldMap.put(key, field);
-        }
-        return fieldMap.get(key);
-    }
-
-    public Method getMH(String methodName) throws Throwable {
-        String key = target.getClass() + "." + methodName;
-        if (!mhMap.containsKey(key)) {
-            Method mymethod = this.getClass().getMethod(methodName);
-            mhMap.put(key, mymethod);
-        }
-        return mhMap.get(key);
-    }
-
-    public Object setAndGetValue(String methodName) throws Throwable {
-        String filedName = methodName.substring(3, 4).toLowerCase() + methodName.substring(4);
-        Object result = getMH(methodName).invoke(this);
-        getTargetField(filedName).set(target, result);
-        return result;
     }
 }

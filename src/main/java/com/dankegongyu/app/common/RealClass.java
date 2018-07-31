@@ -1,6 +1,7 @@
-package qeorm;
+package com.dankegongyu.app.common;
 
 import com.google.common.collect.Maps;
+import org.springframework.util.ClassUtils;
 
 import java.util.Map;
 
@@ -43,5 +44,12 @@ public class RealClass {
 
     public static boolean isPrimitive(Class klass) {
         return primitive.containsKey(klass);
+    }
+
+    public static Class getRealClass(Class klass){
+        if(ClassUtils.isCglibProxyClass(klass)){
+
+        }
+        return klass;
     }
 }
