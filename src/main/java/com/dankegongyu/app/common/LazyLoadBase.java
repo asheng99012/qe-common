@@ -12,6 +12,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LazyLoadBase<T> implements MethodInterceptor {
@@ -46,12 +47,15 @@ public class LazyLoadBase<T> implements MethodInterceptor {
         return proxy;
     }
 
-    public void load(String... fileds) {
+    public void load() {
         String filed;
+        List<String> list = AutoLoadWrap.getAutoLoadMethod(target.getClass());
         try {
-            for (int i = 0; i < fileds.length; i++) {
-                filed = fileds[i];
-                setAndGetValue("get" + filed.substring(0, 1).toUpperCase() + filed.substring(1));
+            if (list != null) {
+                for (int i = 0; i < list.size(); i++) {
+                    filed = list.get(i);
+                    setAndGetValue(filed);
+                }
             }
         } catch (Throwable e) {
             throw new NeedEmailException(e.getMessage(), e.getCause());
