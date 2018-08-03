@@ -18,7 +18,7 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
     public static String currentSessionError = "currentSessionError";
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    private static boolean isSendEmail = false;
+    private static boolean warpError = true;
 
     public static void setCurrentThreadError(String msg) {
         Current.set(GlobalExceptionHandler.class.getName() + ".CurrentThreadError", msg);
@@ -28,12 +28,8 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         return Current.get(GlobalExceptionHandler.class.getName() + ".CurrentThreadError");
     }
 
-    public void setSendEmail(boolean sendEmail) {
-        GlobalExceptionHandler.isSendEmail = sendEmail;
-    }
-
-    public static boolean isIsSendEmail() {
-        return GlobalExceptionHandler.isSendEmail;
+    public void setWarpError(boolean warpError) {
+        GlobalExceptionHandler.warpError = warpError;
     }
 
     public static String getErrorMsg() {
@@ -56,9 +52,18 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         ApiResult result = new ApiResult("出错了，请稍后再试", 1);
         logger.error(e.getMessage(), e);
         Throwable t = getRealThrowable(e);
+        if (!warpError)
+            result.setMsg(t.getMessage() == null ? "空指针" : t.getMessage());
         if (t instanceof BaseException) {
             result.setMsg(t.getMessage());
             result.setStatus(((BaseException) t).getCode());
+        } else {
+            String msg = t.getMessage();
+            if (msg != null && msg.startsWith("com.dankegongyu.app.common.exception")) {
+                msg = msg.substring(0, msg.indexOf("\r\n"));
+                msg = msg.substring(msg.indexOf(": ") + 1);
+                result.setMsg(msg);
+            }
         }
         Current.sendErrorMsg(t);
         logger.error(t.getMessage(), t);
