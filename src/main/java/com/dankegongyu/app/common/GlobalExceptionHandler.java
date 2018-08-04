@@ -60,7 +60,9 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
         } else {
             String msg = t.getMessage();
             if (msg != null && msg.startsWith("com.dankegongyu.app.common.exception")) {
-                msg = msg.substring(0, msg.indexOf("\r\n"));
+                String line = java.security.AccessController.doPrivileged(
+                        new sun.security.action.GetPropertyAction("line.separator"));
+                msg = msg.substring(0, msg.indexOf(line));
                 msg = msg.substring(msg.indexOf(": ") + 1);
                 result.setMsg(msg);
             }
