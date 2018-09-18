@@ -2,6 +2,7 @@ package com.dankegongyu.app.common;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cglib.beans.BeanMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,11 @@ public class CsvUtils {
 
     public static String formatToCsv(List data, String[] column, String[] chineses) {
         if (column == null && data.size() > 0) {
-            Map<String, Object> map = (Map<String, Object>) JsonUtils.convert(data.get(0), Map.class);
+            Map<String, Object> map;
+            if(data.get(0) instanceof Map)
+                map=(Map<String, Object>)data.get(0);
+            else
+                map= BeanMap.create(data.get(0));
             column=new String[map.keySet().size()];
             int i=0;
             for(String c:map.keySet()){
@@ -46,7 +51,7 @@ public class CsvUtils {
                 Map row = JsonUtils.convert(obj, Map.class);
                 List<String> rowData = new ArrayList<String>();
                 for (String key : column) {
-                    String val = !row.containsKey(key) ? "" : row.get(key).toString().replaceAll("\",", "").replaceAll(",", "，").replaceAll("^\\d{5,}$", "'$0");
+                    String val = !row.containsKey(key) ? "" : row.get(key).toString().replaceAll("\",", "").replaceAll(",", "，").replaceAll("^\\d+$", "'$0");
                     rowData.add("\"" + val + "\"");
                 }
                 list.add(StringUtils.join(rowData, ","));
@@ -57,7 +62,11 @@ public class CsvUtils {
     
     public static String formatToCsvWithRelation(List data, String[] column, String[] chineses) {
         if (column == null && data.size() > 0) {
-            Map<String, Object> map = (Map<String, Object>) JsonUtils.convert(data.get(0), Map.class);
+            Map<String, Object> map;
+            if(data.get(0) instanceof Map)
+                map=(Map<String, Object>)data.get(0);
+            else
+                map= BeanMap.create(data.get(0));
             column=new String[map.keySet().size()];
             int i=0;
             for(String c:map.keySet()){

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,11 +92,14 @@ public class BaseController {
      * @return
      * @throws IOException
      */
-    public String toCsv(List list, String[] column, String[] chineses) throws IOException {
+    public String toCsv(List list, String[] column, String[] chineses)throws IOException{
+       return toCsv(list,column,chineses,"");
+    }
+    public String toCsv(List list, String[] column, String[] chineses,String title) throws IOException {
         HttpServletResponse response = Current.getResponse();
         response.setContentType("application/octet-stream");
 //        response.setHeader("Content-type","text/csv");
-        response.setHeader("Content-Disposition", "attachment;filename=" + System.currentTimeMillis() + ".csv");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(String.valueOf(title), "UTF-8")+"_"+System.currentTimeMillis() + ".csv");
         response.setHeader("Cache-Control", "must-revalidate,post-check=0,pre-check=0");
         response.setHeader("'Expires", "0");
         response.setHeader("Pragma", "public");
@@ -106,8 +110,8 @@ public class BaseController {
         System.arraycopy(csv, 0, data, commonCsvHead.length, csv.length);
         response.getOutputStream().write(data);
         response.getOutputStream().flush();
-        // response.getOutputStream().close();
-        return null;
+         response.getOutputStream().close();
+        return toJson(null);
     }
 
     /**
@@ -116,7 +120,8 @@ public class BaseController {
      * @return
      * @throws IOException
      */
-    public String toCsvWithRelation(List list, String[] column, String[] chineses) throws IOException {
+
+    public String toCsvWithRelation(List list, String[] column, String[] chineses,String title) throws IOException {
         HttpServletResponse response = Current.getResponse();
         response.setContentType("application/octet-stream");
 //        response.setHeader("Content-type","text/csv");
@@ -138,7 +143,9 @@ public class BaseController {
     public String toCsv(List list) throws IOException {
         return toCsv(list, null, null);
     }
-
+    public String toCsv(List list,String title) throws IOException {
+        return toCsv(list, null, null,title);
+    }
     public String toCsv(List list, String[] column) throws IOException {
         return toCsv(list, column, null);
     }
