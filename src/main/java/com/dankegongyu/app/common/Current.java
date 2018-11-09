@@ -359,6 +359,10 @@ public class Current implements Filter, ApplicationContextAware {
         servletContext = filterConfig.getServletContext();
     }
 
+    public static void setTraceId(){
+        if(MDC.get("traceId")==null)
+            MDC.put("traceId", UUID19.randomUUID());
+    }
 
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
