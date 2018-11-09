@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import org.springframework.cglib.beans.BeanMap;
 
 import java.util.Iterator;
+import java.util.Map;
 
 public class Wrap {
     private Object target;
@@ -27,7 +28,11 @@ public class Wrap {
     }
 
     private Object getValue(Object obj, String filed) {
-        BeanMap map = BeanMap.create(obj);
+        Map map;
+        if (obj instanceof Map)
+            map = (Map) obj;
+        else
+            map = BeanMap.create(obj);
         Object ret = null;
         if (map.containsKey(filed))
             ret = map.get(filed);

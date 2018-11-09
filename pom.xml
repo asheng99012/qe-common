@@ -8,8 +8,11 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
     <artifactId>dk-app-common</artifactId>
+    <properties>
+        <spring.version>4.3.19.RELEASE</spring.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
