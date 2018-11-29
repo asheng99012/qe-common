@@ -4,10 +4,10 @@ import com.dankegongyu.common.util.UUID19;
 import org.slf4j.MDC;
 
 public class TraceIdUtils {
-    static String traceId = "traceId";
+    static String TRACEID = "traceId";
 
     public static void setTraceId(String traceId) {
-        MDC.put(traceId, traceId);
+        MDC.put(TRACEID, traceId);
     }
 
     public static void setTraceId() {
@@ -16,6 +16,6 @@ public class TraceIdUtils {
     }
 
     public static String getTraceId() {
-        return MDC.get(traceId);
+        return MDC.get(TRACEID);
     }
 }
