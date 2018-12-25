@@ -360,8 +360,7 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static void setTraceId(){
-        if(MDC.get("traceId")==null)
-            MDC.put("traceId", UUID19.randomUUID());
+        TraceIdUtils.setTraceId();
     }
 
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -371,7 +370,8 @@ public class Current implements Filter, ApplicationContextAware {
         setContext(req, res);
         Long start = new Date().getTime();
         try {
-            MDC.put("traceId", UUID19.randomUUID());
+//            MDC.put("traceId", UUID19.randomUUID());
+            TraceIdUtils.setTraceId();
             logger.info(getRequestOtherInfo());
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
