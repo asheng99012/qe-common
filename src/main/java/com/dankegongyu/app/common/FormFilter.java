@@ -15,11 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -177,6 +175,33 @@ public class FormFilter {
 
         return Current.getRequest() != null && Current.getRequest().getContentType() != null && Current.getRequest().getContentType().indexOf("json") > 0;
     }
+    private static boolean isXml() {
+
+        return Current.getRequest() != null && Current.getRequest().getContentType() != null && Current.getRequest().getContentType().indexOf("xml") > 0;
+    }
+
+    private static Map<String, Object> getPostXml() {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+            InputStream in=Current.getRequest().getInputStream();
+            byte[] buffer = new byte[2048];
+            int length = 0;
+            while((length = in.read(buffer)) != -1) {
+                bos.write(buffer, 0, length);//写入输出流
+            }
+            in.close();//读取完毕，关闭输入流
+
+            String xml= new String(bos.toByteArray(), "UTF-8");
+            Map<String,Object> map=new HashMap<>();
+            map.put("data",xml);
+            return map;
+//            return JSON.parseObject(sb.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Maps.newHashMap();
+    }
 
     /**
      * 正常获取参数
@@ -279,7 +304,10 @@ public class FormFilter {
             Map<String, Object> returnMap = Maps.newHashMap();
             if (isJson()) {
                 returnMap = getPostJson();
-            } else {
+            }else if(isXml()){
+                returnMap = getPostXml();
+            }
+            else {
                 Map<String, Object[]> properties = getRealParameterMap();
                 Iterator entries = properties.entrySet().iterator();
                 Map.Entry entry;
