@@ -13,8 +13,7 @@ public class TraceIdUtils {
     }
 
     public static void setTraceId() {
-        if (getTraceId() == null)
-            setTraceId(UUID19.randomUUID());
+        setTraceId(UUID19.randomUUID());
     }
 
     public static String getTraceId() {
