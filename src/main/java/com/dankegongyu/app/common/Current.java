@@ -45,6 +45,7 @@ public class Current implements Filter, ApplicationContextAware {
     private static final String UUID = "ssid";//SESSION
     private static ServletContext servletContext;
     private static ApplicationContext appContext = null;
+    public static final String SERVERIP = Current.getLocalIP();  //当前服务IP
 
     public Current() {
     }
@@ -264,7 +265,6 @@ public class Current implements Filter, ApplicationContextAware {
         Map map = getRequest().getParameterMap();
         return JsonUtils.convert(map, clazz);
     }
-
     public static String getLocalIP() {
         if (get("Current.getLocalIP") == null) {
             Enumeration allNetInterfaces = null;
@@ -295,6 +295,7 @@ public class Current implements Filter, ApplicationContextAware {
         }
         return get("Current.getLocalIP");
     }
+
 
 
     public static String getRemortIP() {
