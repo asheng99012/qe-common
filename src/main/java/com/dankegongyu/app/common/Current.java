@@ -45,6 +45,7 @@ public class Current implements Filter, ApplicationContextAware {
     private static final String UUID = "ssid";//SESSION
     private static ServletContext servletContext;
     private static ApplicationContext appContext = null;
+    public static final String SERVERIP = Current.getNewLocalIP();  //当前服务IP
 
     public Current() {
     }
@@ -264,8 +265,16 @@ public class Current implements Filter, ApplicationContextAware {
         Map map = getRequest().getParameterMap();
         return JsonUtils.convert(map, clazz);
     }
+    //兼容历史接口,属于过期接口，可以使用Current.SERVERIP
+    @Deprecated
+    public  static String getLocalIP(){
+      if (Current.SERVERIP==null ||"".equals(Current.SERVERIP)){
+         return  getNewLocalIP();
+      }
+      return Current.SERVERIP;
+    };
 
-    public static String getLocalIP() {
+    public static String getNewLocalIP() {
         if (get("Current.getLocalIP") == null) {
             Enumeration allNetInterfaces = null;
             InetAddress ip = null;
@@ -292,9 +301,11 @@ public class Current implements Filter, ApplicationContextAware {
                 e.printStackTrace();
             }
             set("Current.getLocalIP", Joiner.on(",").join(ips));
+            logger.info("当前系统ip地址是："+Joiner.on(",").join(ips));
         }
         return get("Current.getLocalIP");
     }
+
 
 
     public static String getRemortIP() {
@@ -410,7 +421,7 @@ public class Current implements Filter, ApplicationContextAware {
         if (request != null) {
             msg.add("当前地址为 : " + request.getRequestURL().toString());
             msg.add("用户IP : " + Current.getRemortIP());
-            msg.add("SERVER IP : " + Current.getLocalIP());
+            msg.add("SERVER IP : " + Current.SERVERIP);
             HttpServletRequest req = (HttpServletRequest) Current.getRequest();
             msg.add("参数信息为 : ");
             msg.add(JsonUtils.toJson(req.getParameterMap()));
@@ -438,7 +449,7 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static void sendErrorMsg(Throwable ex) {
-        String subject = "【报警】" + ex.getMessage() + ": " + MDC.get("traceId") + ":" + Current.getLocalIP();
+        String subject = "【报警】" + ex.getMessage() + ": " + MDC.get("traceId") + ":" + SERVERIP;
         String msg = subject + "<br />" + Current.getRequestOtherInfo();
         Mailer mailer = Mailer.getMailer();
         StringWriter stringWriter = new StringWriter();
