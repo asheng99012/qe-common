@@ -421,7 +421,7 @@ public class Current implements Filter, ApplicationContextAware {
         if (request != null) {
             msg.add("当前地址为 : " + request.getRequestURL().toString());
             msg.add("用户IP : " + Current.getRemortIP());
-            msg.add("SERVER IP : " + Current.SERVERIP);
+
             HttpServletRequest req = (HttpServletRequest) Current.getRequest();
             msg.add("参数信息为 : ");
             msg.add(JsonUtils.toJson(req.getParameterMap()));
@@ -431,6 +431,7 @@ public class Current implements Filter, ApplicationContextAware {
             msg.add("cookie信息为 : ");
             msg.add(JsonUtils.toJson(Current.getCookie()));
         }
+        msg.add("SERVER IP : " + Current.SERVERIP);
         msg.add("=======================================");
         msg.add("");
         return StringUtils.join(msg, " <br />");
