@@ -17,7 +17,7 @@ public class MoreSheetWriter {
 
     public MoreSheetWriter(String path) {
         try {
-            out = new FileOutputStream("C:\\Users\\asheng\\Desktop\\temp\\fangjian.xlsx");
+            out = new FileOutputStream(path);
             writer = new ExcelWriter(out, ExcelTypeEnum.XLSX, false);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
