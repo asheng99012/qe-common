@@ -51,12 +51,21 @@ public class Writer {
     }
 
     public void writeTo(OutputStream out) {
+        writeTo(out, "sheet0");
+    }
+
+    public void writeTo(String path, String sheetName) throws FileNotFoundException {
+        writeTo(new FileOutputStream(path), sheetName);
+    }
+
+    public void writeTo(OutputStream out, String sheetName) {
         ExcelWriter writer = new ExcelWriter(out, ExcelTypeEnum.XLSX, false);
         //写第一个sheet, sheet1  数据全是List<String> 无模型映射关系
         Sheet sheet1 = new Sheet(1, 0);
-        sheet1.setSheetName("sheet0");
+        sheet1.setSheetName(sheetName);
         writer.write0(getDatas(), sheet1);
         writer.finish();
     }
+
 }
 
