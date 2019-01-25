@@ -20,7 +20,7 @@ public class MoreSheetWriter {
             out = new FileOutputStream(path);
             writer = new ExcelWriter(out, ExcelTypeEnum.XLSX, false);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+           throw new RuntimeException(e.getMessage(),e.getCause());
         }
 
     }

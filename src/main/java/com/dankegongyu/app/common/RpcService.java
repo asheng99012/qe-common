@@ -23,7 +23,7 @@ public class RpcService {
         Type[] paramsTypes = method.getGenericParameterTypes();
         Object[] params = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
-            params[i] = JsonUtils.convert(args[i], paramsTypes[i]);
+            params[i] = args[i] == null ? null : JsonUtils.convert(args[i], paramsTypes[i]);
         }
         logger.info(instanse.getClass().getName() + "@" + method.getName());
         logger.info(JsonUtils.toJson(params));
