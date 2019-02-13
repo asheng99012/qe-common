@@ -382,7 +382,11 @@ public class Current implements Filter, ApplicationContextAware {
         Long start = new Date().getTime();
         try {
 //            MDC.put("traceId", UUID19.randomUUID());
-            TraceIdUtils.setTraceId();
+            String traceId=req.getParameter("traceId");
+            if(traceId==null || traceId.equals(""))
+                TraceIdUtils.setTraceId();
+            else
+                TraceIdUtils.setTraceId(traceId);
             logger.info(getRequestOtherInfo());
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
