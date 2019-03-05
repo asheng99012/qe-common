@@ -23,7 +23,9 @@ public class DefaultHeader implements Header {
 
             @Override
             public String exec(Matcher m) {
-                return Wrap.getWrap(obj).getValue(m.group(1))+"";
+                Object val = Wrap.getWrap(obj).getValue(m.group(1));
+                if (val == null) return "";
+                return val + "";
             }
         });
     }
