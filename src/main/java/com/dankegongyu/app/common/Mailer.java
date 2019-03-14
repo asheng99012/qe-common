@@ -35,8 +35,20 @@ public class Mailer extends JavaMailSenderImpl {
 
     private String errorTo;
 
+    private String domain;
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+        initDomain();
+    }
+
     public void setErrorTo(String errorTo) {
         this.errorTo = errorTo;
+        initDomain();
     }
 
     public void setFromName(String fromName) {
@@ -45,6 +57,19 @@ public class Mailer extends JavaMailSenderImpl {
 
     public void setFrom(String from) {
         this.from = from;
+        initDomain();
+    }
+
+    public String dealAddr(String addr) {
+        if (Strings.isNullOrEmpty(domain) || Strings.isNullOrEmpty(addr)) return addr;
+        addr = addr.replace("dankegongyu.com", domain);
+        addr = addr.replace("danke.com", domain);
+        return addr;
+    }
+
+    public void initDomain() {
+        from = dealAddr(from);
+        errorTo = dealAddr(errorTo);
     }
 
     //    @Async
@@ -76,7 +101,7 @@ public class Mailer extends JavaMailSenderImpl {
             Address[] addresses = new Address[tos.length];
             for (int i = 0, l = tos.length; i < l; i++) {
                 // 创建邮件的接收者地址，并设置到邮件消息中
-                addresses[i] = new InternetAddress(tos[i]);
+                addresses[i] = new InternetAddress(dealAddr(tos[i]));
             }
             // Message.RecipientType.TO属性表示接收者的类型为TO
             message.setRecipients(Message.RecipientType.TO, addresses);
