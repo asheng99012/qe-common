@@ -1,5 +1,6 @@
 package com.dankegongyu.app.common;
 
+import com.google.common.base.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,10 +109,8 @@ public class BaseController {
         byte data[] = new byte[commonCsvHead.length + csv.length];
         System.arraycopy(commonCsvHead, 0, data, 0, commonCsvHead.length);
         System.arraycopy(csv, 0, data, commonCsvHead.length, csv.length);
-        response.getOutputStream().write(data);
-        response.getOutputStream().flush();
-         response.getOutputStream().close();
-        return toJson(null);
+        Current.getRequest().setAttribute(MODEL, new String(data, Charsets.UTF_8));
+        return "page/json";
     }
 
     /**
@@ -134,10 +133,11 @@ public class BaseController {
         byte data[] = new byte[commonCsvHead.length + csv.length];
         System.arraycopy(commonCsvHead, 0, data, 0, commonCsvHead.length);
         System.arraycopy(csv, 0, data, commonCsvHead.length, csv.length);
-        response.getOutputStream().write(data);
-        response.getOutputStream().flush();
+//        response.getOutputStream().write(data);
+//        response.getOutputStream().flush();
         // response.getOutputStream().close();
-        return null;
+        Current.getRequest().setAttribute(MODEL, new String(data, Charsets.UTF_8));
+        return "page/json";
     }
 
     public String toCsv(List list) throws IOException {
