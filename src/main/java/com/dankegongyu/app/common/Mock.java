@@ -35,7 +35,7 @@ public class Mock {
     public boolean isMock(String url) {
         if (Strings.isNullOrEmpty(proxyHost)) return false;
         for (int i = 0; i < mockUrlList.size(); i++) {
-            if (mockUrlList.get(i).indexOf(url) == 0) {
+            if (url.indexOf(mockUrlList.get(i)) == 0 || url.matches(mockUrlList.get(i))) {
                 return true;
             }
         }
@@ -44,7 +44,7 @@ public class Mock {
 
     public String mockUrl(String url) {
         if (isMock(url))
-            url = url.replaceAll("^https?://", "http://" + proxyHost);
+            url = url.replaceAll(":\\d+", "").replaceAll("^https?://", proxyHost);
         return url;
     }
 
