@@ -31,6 +31,16 @@ public class Mock {
         this.mockUrlList = mockUrlList;
     }
 
+    public void addUrl(String url){
+        if(mockUrlList.indexOf(url)==-1)
+            mockUrlList.add(url);
+    }
+    public void removeUrl(String url){
+        if(mockUrlList.indexOf(url)>-1){
+            mockUrlList.remove(url);
+        }
+    }
+
     //是否需要对 url mock
     public boolean isMock(String url) {
         if (Strings.isNullOrEmpty(proxyHost)) return false;
