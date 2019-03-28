@@ -17,7 +17,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
 public class Sender {
     static Logger logger = LoggerFactory.getLogger(Sender.class);
     @Autowired

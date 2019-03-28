@@ -19,7 +19,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-@Component
 public class DkzkClient {
     Logger logger = LoggerFactory.getLogger(DkzkClient.class);
     @Autowired

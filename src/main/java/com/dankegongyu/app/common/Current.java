@@ -45,6 +45,7 @@ public class Current implements Filter, ApplicationContextAware {
     private static ServletContext servletContext;
     private static ApplicationContext appContext = null;
     public static final String SERVERIP = Current.getNewLocalIP();  //当前服务IP
+    private static String errorPage = "/error";
 
     public Current() {
     }
@@ -75,15 +76,16 @@ public class Current implements Filter, ApplicationContextAware {
 
     private static void remove() {
         controllerContext.remove();
+        CurrentContext.clear();
     }
 
 
     public static <T> T get(String key) {
-        return CurrentContext.get(key);
+        return (T) getContext().context.get(key);
     }
 
     public static void set(String key, Object value) {
-        CurrentContext.set(key, value);
+        getContext().context.put(key, value);
     }
 
     public static void resetContext(Map<String, Object> map) {
@@ -138,6 +140,7 @@ public class Current implements Filter, ApplicationContextAware {
         if (getSession() == null) return null;
         Object ret = getSession().getAttribute(key);
         if (ret == null) return null;
+        CurrentContext.set("session_" + key, ret);
         return (T) ret;
     }
 
@@ -358,6 +361,9 @@ public class Current implements Filter, ApplicationContextAware {
     public void init(FilterConfig filterConfig) throws ServletException {
         logger.info(this.getClass().getSimpleName() + " init");
         servletContext = filterConfig.getServletContext();
+        String errpath = filterConfig.getInitParameter(errorPage);
+        if (!Strings.isNullOrEmpty(errpath))
+            errorPage = errpath;
     }
 
     public static void setTraceId() {
@@ -369,6 +375,7 @@ public class Current implements Filter, ApplicationContextAware {
         req.setCharacterEncoding("UTF-8");
         HttpServletResponse res = (HttpServletResponse) servletResponse;
         setContext(req, res);
+        CurrentContext.initFromSession();
         Long start = new Date().getTime();
         try {
 //            MDC.put("traceId", UUID19.randomUUID());
@@ -388,7 +395,7 @@ public class Current implements Filter, ApplicationContextAware {
                     res.getOutputStream().write(Current.getRequest().getAttribute(BaseController.MODEL).toString().getBytes(Charsets.UTF_8));
                 } else {
                     Current.setSession(GlobalExceptionHandler.currentSessionError, e.getMessage());
-                    req.getRequestDispatcher("/error").forward(servletRequest, servletResponse);
+                    req.getRequestDispatcher(errorPage).forward(servletRequest, servletResponse);
                 }
             } catch (IOException ioe) {
                 logger.error(ioe.getMessage(), ioe);

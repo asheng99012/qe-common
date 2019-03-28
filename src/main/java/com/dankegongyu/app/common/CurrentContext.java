@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.springframework.core.NamedThreadLocal;
 
+import javax.servlet.http.HttpSession;
 import java.awt.image.Kernel;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,4 +50,18 @@ public class CurrentContext {
         setContext(JSON.parseObject(json, Map.class));
     }
 
+    public static void clear() {
+        context.remove();
+    }
+
+    public static void initFromSession() {
+        HttpSession session = Current.getSession();
+        if (session == null) return;
+        Enumeration enumeration = session.getAttributeNames();
+        while (enumeration.hasMoreElements()) {
+            String key = enumeration.nextElement().toString();
+            if (!key.equals(GlobalExceptionHandler.currentSessionError))
+                Current.getSession(key);
+        }
+    }
 }

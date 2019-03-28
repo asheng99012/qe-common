@@ -24,10 +24,15 @@ public class ProviderFilter implements Filter {
             CurrentContext.resetFromJson(attachments.get(CurrentContext.class.getName()));
         }
         TraceIdUtils.setTraceId();
-        Result result = invoker.invoke(invocation);
-        if (result.hasException()) {
-            logger.error(result.getException().getMessage(), result.getException().getCause());
+        try {
+            Result result = invoker.invoke(invocation);
+            if (result.hasException()) {
+                logger.error(result.getException().getMessage(), result.getException().getCause());
+            }
+            return result;
+        } finally {
+            CurrentContext.clear();
         }
-        return result;
+
     }
 }

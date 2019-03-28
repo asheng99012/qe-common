@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 /**
  * 配合 proxy 使用的异步任务处理
  */
-@Component("commonListener")
 public class CommonListener extends BaseListener {
     @Autowired
     RpcService rpcService;

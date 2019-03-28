@@ -119,7 +119,11 @@ public class ConcurrencyManager<K, T> {
                 CurrentContext.resetFromJson(contextJson);
                 TraceIdUtils.setTraceId(traceId + "-" + key);
                 logger.info("task:{} start", key);
-                return callable.call();
+                try {
+                    return callable.call();
+                } finally {
+                    CurrentContext.clear();
+                }
             });
             Futures.addCallback(listenableFuture, new FutureCallback<T>() {
                 @Override

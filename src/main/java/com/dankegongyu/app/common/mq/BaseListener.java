@@ -47,6 +47,7 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
             logger.error("from mq handler error:{}", ex.getMessage(), ex);
             AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel);
         } finally {
+            CurrentContext.clear();
             Long costTime = new Date().getTime() - start;
             logger.info("cost time:{}", costTime);
         }
