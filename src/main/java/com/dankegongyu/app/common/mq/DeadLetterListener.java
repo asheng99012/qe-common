@@ -5,6 +5,7 @@ import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class DeadLetterListener extends BaseListener {
@@ -12,8 +13,25 @@ public class DeadLetterListener extends BaseListener {
     @Autowired
     Sender sender;
     private String deadRoutingKey;
-    private int maxCount;
-    private Map<String, Integer> routingKeyMaxCount;
+    private String terminatedRoutingKey;
+    private int maxCount = 10;
+    private Map<String, Integer> routingKeyMaxCount = new HashMap<>();
+
+    public void setTerminatedRoutingKey(String terminatedRoutingKey) {
+        this.terminatedRoutingKey = terminatedRoutingKey;
+    }
+
+    public void setDeadRoutingKey(String deadRoutingKey) {
+        this.deadRoutingKey = deadRoutingKey;
+    }
+
+    public void setMaxCount(int maxCount) {
+        this.maxCount = maxCount;
+    }
+
+    public void setRoutingKeyMaxCount(Map<String, Integer> routingKeyMaxCount) {
+        this.routingKeyMaxCount = routingKeyMaxCount;
+    }
 
     @Override
     public void exec(Message message, Channel channel) {
@@ -26,27 +44,28 @@ public class DeadLetterListener extends BaseListener {
         sender.send(headers.get("originRoutingKey").toString(), msg, headers);
     }
 
-    public void toDeadQueue(Message message, Channel channel) {
+    public void toDeadQueue(Message message, Channel channel, Exception e) {
         Map<String, Object> headers = message.getMessageProperties().getHeaders();
         if (!headers.containsKey("originRoutingKey")) {
             headers.put("originRoutingKey", message.getMessageProperties().getReceivedRoutingKey());
         }
+        headers.put("errorMsg", e.getMessage());
         int execCount = 2;
         if (headers.containsKey("execCount")) {
             execCount = (Integer) headers.get("execCount");
             execCount++;
         }
-        if (execCount > getMaxCount(headers.get("originRoutingKey").toString())) {
-            //todo
-        }
         headers.put("execCount", execCount);
-
         Object msg = getBody(message);
         try {
             msg = JSON.parseObject(msg.toString());
-        } catch (Exception e) {
+        } catch (Exception ex) {
         }
-        sender.send(deadRoutingKey, msg, headers);
+        if (execCount > getMaxCount(headers.get("originRoutingKey").toString())) {
+            sender.send(terminatedRoutingKey, msg, headers);
+        } else {
+            sender.send(deadRoutingKey, msg, headers);
+        }
     }
 
     public int getMaxCount(String routingKey) {
