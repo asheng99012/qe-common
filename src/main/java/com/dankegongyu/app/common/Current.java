@@ -4,7 +4,6 @@ import com.dankegongyu.app.common.exception.BaseException;
 import com.dankegongyu.app.common.exception.NeedEmailException;
 import com.dankegongyu.app.common.exception.NeedLoginException;
 import com.dankegongyu.app.common.exception.ParameterException;
-import com.dankegongyu.common.util.UUID19;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -69,8 +68,9 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static void setContext(HttpServletRequest request, HttpServletResponse response) {
-        set(REQUEST, request);
-        set(RESPONSE, response);
+        Map<String, Object> map = getContext().context;
+        map.put(REQUEST, request);
+        map.put(RESPONSE, response);
     }
 
     private static void remove() {
@@ -79,35 +79,15 @@ public class Current implements Filter, ApplicationContextAware {
 
 
     public static <T> T get(String key) {
-        Map<String, Object> map = getContext().context;
-        if (map.containsKey(key)) return (T) map.get(key);
-        return null;
+        return CurrentContext.get(key);
     }
 
     public static void set(String key, Object value) {
-        getContext().context.put(key, value);
+        CurrentContext.set(key, value);
     }
 
-    /**
-     * 获取当前进程的单例
-     *
-     * @param clazz
-     * @param <T>
-     * @return
-     */
-    public static <T> T getSington(Class<T> clazz) {
-        String key = clazz.getName();
-        if (get(key) == null) {
-            try {
-                set(key, clazz.newInstance());
-                logger.info(key + " 被单例化");
-            } catch (InstantiationException e) {
-                logger.error(e.getMessage(), e);
-            } catch (IllegalAccessException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        return (T) get(key);
+    public static void resetContext(Map<String, Object> map) {
+        CurrentContext.setContext(map);
     }
 
     public static String getUUID() {
@@ -129,11 +109,15 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static HttpServletRequest getRequest() {
-        return get(REQUEST);
+        Map<String, Object> map = getContext().context;
+        if (map.containsKey(REQUEST)) return (HttpServletRequest) map.get(REQUEST);
+        return null;
     }
 
     public static HttpServletResponse getResponse() {
-        return get(RESPONSE);
+        Map<String, Object> map = getContext().context;
+        if (map.containsKey(RESPONSE)) return (HttpServletResponse) map.get(RESPONSE);
+        return null;
     }
 
 
@@ -148,6 +132,9 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static <T> T getSession(String key) {
+        if (CurrentContext.get("session_" + key) != null) {
+            return CurrentContext.get("session_" + key);
+        }
         if (getSession() == null) return null;
         Object ret = getSession().getAttribute(key);
         if (ret == null) return null;
@@ -155,6 +142,7 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public static void setSession(String key, Object value) {
+        CurrentContext.set("session_" + key, value);
         if (getSession() == null) return;
         getSession().setAttribute(key, value);
     }
@@ -265,14 +253,17 @@ public class Current implements Filter, ApplicationContextAware {
         Map map = getRequest().getParameterMap();
         return JsonUtils.convert(map, clazz);
     }
+
     //兼容历史接口,属于过期接口，可以使用Current.SERVERIP
     @Deprecated
-    public  static String getLocalIP(){
-      if (Current.SERVERIP==null ||"".equals(Current.SERVERIP)){
-         return  getNewLocalIP();
-      }
-      return Current.SERVERIP;
-    };
+    public static String getLocalIP() {
+        if (Current.SERVERIP == null || "".equals(Current.SERVERIP)) {
+            return getNewLocalIP();
+        }
+        return Current.SERVERIP;
+    }
+
+    ;
 
     public static String getNewLocalIP() {
         if (get("Current.getLocalIP") == null) {
@@ -301,11 +292,10 @@ public class Current implements Filter, ApplicationContextAware {
                 e.printStackTrace();
             }
             set("Current.getLocalIP", Joiner.on(",").join(ips));
-            logger.info("当前系统ip地址是："+Joiner.on(",").join(ips));
+            logger.info("当前系统ip地址是：" + Joiner.on(",").join(ips));
         }
         return get("Current.getLocalIP");
     }
-
 
 
     public static String getRemortIP() {
@@ -370,7 +360,7 @@ public class Current implements Filter, ApplicationContextAware {
         servletContext = filterConfig.getServletContext();
     }
 
-    public static void setTraceId(){
+    public static void setTraceId() {
         TraceIdUtils.setTraceId();
     }
 
@@ -382,8 +372,8 @@ public class Current implements Filter, ApplicationContextAware {
         Long start = new Date().getTime();
         try {
 //            MDC.put("traceId", UUID19.randomUUID());
-            String traceId=req.getParameter("traceId");
-            if(traceId==null || traceId.equals(""))
+            String traceId = req.getParameter("traceId");
+            if (traceId == null || traceId.equals(""))
                 TraceIdUtils.setTraceId();
             else
                 TraceIdUtils.setTraceId(traceId);
