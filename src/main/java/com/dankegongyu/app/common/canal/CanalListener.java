@@ -1,7 +1,11 @@
 package com.dankegongyu.app.common.canal;
 
 import com.dankegongyu.app.common.AppUtils;
+import com.dankegongyu.app.common.CurrentContext;
+import com.dankegongyu.app.common.JsonUtils;
+import com.dankegongyu.app.common.TraceIdUtils;
 import com.dankegongyu.app.common.mq.BaseListener;
+import com.dankegongyu.app.common.mq.DeadLetterListener;
 import com.dankegongyu.app.common.mq.Proxy;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -14,6 +18,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +31,28 @@ public class CanalListener extends BaseListener implements ApplicationListener<C
 
     public void setErrorRoutingKey(String errorRoutingKey) {
         this.errorRoutingKey = errorRoutingKey;
+    }
+
+    @Override
+    public void onMessage(Message message, Channel channel) throws Exception {
+        Long start = new Date().getTime();
+        try {
+
+            if (message.getMessageProperties() != null && message.getMessageProperties().getHeaders() != null && message.getMessageProperties().getHeaders().get(CurrentContext.class.getName()) != null) {
+                CurrentContext.resetFromJson(message.getMessageProperties().getHeaders().get(CurrentContext.class.getName()).toString());
+            }
+            TraceIdUtils.setTraceId();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        try {
+            exec(message, channel);
+        } catch (Exception ex) {
+            AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
+        } finally {
+            CurrentContext.clear();
+        }
+
     }
 
     @Override
