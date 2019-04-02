@@ -4,12 +4,18 @@ import com.dankegongyu.app.common.mq.Proxy;
 
 public interface Process {
     default void doProcess(Message message) {
-        if (message.isInsert())
-            insert(message);
-        if (message.isUpdate())
-            update(message);
-        if (message.isDelete())
-            delete(message);
+        if (canDoProcess(message)) {
+            if (message.isInsert())
+                insert(message);
+            if (message.isUpdate())
+                update(message);
+            if (message.isDelete())
+                delete(message);
+        }
+    }
+
+    default boolean canDoProcess(Message message) {
+        return true;
     }
 
     public void insert(Message message);
