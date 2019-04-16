@@ -61,6 +61,10 @@ public class Message {
         return type.equalsIgnoreCase(TYPE_DELETE);
     }
 
+    public boolean isUpdate(String column) {
+        return isUpdate() && old != null && old.containsKey(column);
+    }
+
     public String getDatabase() {
         return database;
     }
