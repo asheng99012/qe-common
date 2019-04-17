@@ -48,6 +48,7 @@ public class CanalListener extends BaseListener implements ApplicationListener<C
         try {
             exec(message, channel);
         } catch (Exception ex) {
+            logger.error(ex.getMessage(),ex);
             AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
         } finally {
             CurrentContext.clear();
