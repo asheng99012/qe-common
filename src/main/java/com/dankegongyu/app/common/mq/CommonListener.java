@@ -24,7 +24,7 @@ public class CommonListener extends BaseListener {
         try {
             rpcService.run(new Object[]{data.get("class"), data.get("method")}, JSON.parseArray(data.get("data").toString()).toArray());
         } catch (Exception e) {
-            logger.error(e.getMessage(),e.getCause());
+            logger.error(getBody(message) + "|" + e.getMessage(), e.getCause());
             throw new RuntimeException(e.getMessage(), e.getCause());
         }
     }
