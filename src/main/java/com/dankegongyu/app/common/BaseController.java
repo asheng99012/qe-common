@@ -50,29 +50,6 @@ public class BaseController {
     }
 
 
-    @RequestMapping(value = "/{page}")
-    public String simplePage(@PathVariable("page") String page) throws Exception {
-        logger.info(this.getClass().getName() + " simplePage");
-        if (Current.isAjax()) return toJson(new ApiResult("找不到" + Current.getRequest().getRequestURI()));
-        return toView(new Object());
-    }
-
-    //各个静态页面，如：绑定用户页面、登录页面、注册页面
-    @RequestMapping(value = "/{target}/{action}")
-    public String simplePage(@PathVariable("target") String target, @PathVariable("action") String action) throws Exception {
-        logger.info(this.getClass().getName() + " simplePage");
-        if (Current.isAjax()) return toJson(new ApiResult("找不到" + Current.getRequest().getRequestURI()));
-        return toView("/" + target + "/" + action, new Object());
-    }
-
-    @RequestMapping(value = "/{target}/{sub}/{action}")
-    public String simplePage(@PathVariable("target") String target, @PathVariable("sub") String sub, @PathVariable("action") String action) throws Exception {
-        logger.info(this.getClass().getName() + " simplePage");
-        if (Current.isAjax()) return toJson(new ApiResult("找不到" + Current.getRequest().getRequestURI()));
-        return toView("/" + target + "/" + sub + "/" + action, new Object());
-    }
-
-
     public String forward(String path) {
         return "forward:" + getProjectPath(path);
     }
@@ -110,7 +87,7 @@ public class BaseController {
         System.arraycopy(commonCsvHead, 0, data, 0, commonCsvHead.length);
         System.arraycopy(csv, 0, data, commonCsvHead.length, csv.length);
         Current.getRequest().setAttribute(MODEL, new String(data, Charsets.UTF_8));
-        return "page/json";
+        return "json";
     }
 
     /**
@@ -137,7 +114,7 @@ public class BaseController {
 //        response.getOutputStream().flush();
         // response.getOutputStream().close();
         Current.getRequest().setAttribute(MODEL, new String(data, Charsets.UTF_8));
-        return "page/json";
+        return "json";
     }
 
     public String toCsv(List list) throws IOException {
@@ -154,7 +131,7 @@ public class BaseController {
         if (!(model instanceof ApiResult)) model = new ApiResult(model);
         BaseController.writeJsonToClient(model);
         Current.set("tojson", "tojson");
-        return "page/json";
+        return "json";
     }
 
 
@@ -174,7 +151,7 @@ public class BaseController {
 
         Current.getRequest().setAttribute(MODEL, model);
 
-        return "page/" + viewPath;
+        return  viewPath;
     }
 
     public String toView(Object model) {

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -20,6 +21,8 @@ import java.io.IOException;
 /**
  * Created by ashen on 2017-2-19.
  */
+
+@Component("springSessionDefaultRedisSerializer")
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 
     private final ObjectMapper mapper;

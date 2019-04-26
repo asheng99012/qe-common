@@ -3,9 +3,13 @@ package com.dankegongyu.app.common;
 import com.google.common.base.Strings;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -31,12 +35,13 @@ public class Mock {
         this.mockUrlList = mockUrlList;
     }
 
-    public void addUrl(String url){
-        if(mockUrlList.indexOf(url)==-1)
+    public void addUrl(String url) {
+        if (mockUrlList.indexOf(url) == -1)
             mockUrlList.add(url);
     }
-    public void removeUrl(String url){
-        if(mockUrlList.indexOf(url)>-1){
+
+    public void removeUrl(String url) {
+        if (mockUrlList.indexOf(url) > -1) {
             mockUrlList.remove(url);
         }
     }

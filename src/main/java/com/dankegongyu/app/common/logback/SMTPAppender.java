@@ -62,6 +62,6 @@ public class SMTPAppender<E> extends OutputStreamAppender<E> {
         } else {
             threadLocalEvent.set(null);
         }
-        this.encoder.doEncode(event);
+        this.encoder.encode(event);
     }
 }

@@ -2,8 +2,10 @@ package com.dankegongyu.app.common;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+@Component
 public class AppUtils {
     private static ApplicationContext appContext = null;
 

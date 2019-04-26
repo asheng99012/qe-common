@@ -139,7 +139,7 @@ public class ConcurrencyManager<K, T> {
                     logger.error("task {} failure,result {}", key, t.getMessage(), t);
                     latch.countDown();
                 }
-            });
+            },pool);
         }
     }
 }

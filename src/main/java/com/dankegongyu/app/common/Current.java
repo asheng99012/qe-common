@@ -1,5 +1,6 @@
 package com.dankegongyu.app.common;
 
+import com.alibaba.fastjson.parser.ParserConfig;
 import com.dankegongyu.app.common.exception.BaseException;
 import com.dankegongyu.app.common.exception.NeedEmailException;
 import com.dankegongyu.app.common.exception.NeedLoginException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.*;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
 
+@WebFilter(filterName = "current", urlPatterns = {"/*"})
 public class Current implements Filter, ApplicationContextAware {
     private static ThreadLocal controllerContext = new ThreadLocal();
     private static final Logger logger = LoggerFactory.getLogger(Current.class);
@@ -359,6 +362,7 @@ public class Current implements Filter, ApplicationContextAware {
 
 
     public void init(FilterConfig filterConfig) throws ServletException {
+        ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
         logger.info(this.getClass().getSimpleName() + " init");
         servletContext = filterConfig.getServletContext();
         String errpath = filterConfig.getInitParameter(errorPage);
