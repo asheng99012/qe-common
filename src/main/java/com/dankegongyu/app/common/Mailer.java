@@ -21,13 +21,20 @@ import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 
 /**
  * Created by ashen on 2017-2-8.
  */
+@Service
+@ConfigurationProperties(prefix = "mail")
+@ConditionalOnProperty(prefix = "mail", name = "host")
 public class Mailer extends JavaMailSenderImpl {
     private static final Logger logger = LoggerFactory.getLogger(Mailer.class);
     private String from;
