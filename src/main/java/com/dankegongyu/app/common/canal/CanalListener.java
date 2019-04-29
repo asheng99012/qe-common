@@ -34,29 +34,6 @@ public class CanalListener extends BaseListener implements ApplicationListener<C
     }
 
     @Override
-    public void onMessage(Message message, Channel channel) throws Exception {
-        Long start = new Date().getTime();
-        try {
-
-            if (message.getMessageProperties() != null && message.getMessageProperties().getHeaders() != null && message.getMessageProperties().getHeaders().get(CurrentContext.class.getName()) != null) {
-                CurrentContext.resetFromJson(message.getMessageProperties().getHeaders().get(CurrentContext.class.getName()).toString());
-            }
-            TraceIdUtils.setTraceId();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-        try {
-            exec(message, channel);
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(),ex);
-            AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
-        } finally {
-            CurrentContext.clear();
-        }
-
-    }
-
-    @Override
     public void exec(Message message, Channel channel) {
         String body = getBody(message);
         List<com.dankegongyu.app.common.canal.Message> listMsg = com.dankegongyu.app.common.canal.Message.fromJson(body);

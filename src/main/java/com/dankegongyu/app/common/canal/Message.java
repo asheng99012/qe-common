@@ -1,6 +1,7 @@
 package com.dankegongyu.app.common.canal;
 
 import com.dankegongyu.app.common.JsonUtils;
+import com.google.common.base.Strings;
 
 import javax.swing.plaf.PanelUI;
 import java.util.ArrayList;
@@ -141,7 +142,7 @@ public class Message {
             if (dataList != null && dataList.size() > 0) {
                 for (Map<String, Object> aDataList : dataList) {
                     for (Map.Entry<String, Object> entry : aDataList.entrySet()) {
-                        if (entry.getValue() != null)
+                        if (entry.getValue() != null && !Strings.isNullOrEmpty(entry.getValue().toString()))
                             entry.setValue(Mapping.converter(type.get(entry.getKey()), entry.getValue().toString()));
                     }
                 }

@@ -44,7 +44,7 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
             logger.info("from mq receive data:{}", getBody(message));
             exec(message, channel);
         } catch (Exception ex) {
-            logger.error("from mq handler error:{}", ex.getMessage(), ex);
+            logger.error(getBody(message) + "|  from mq handler error:{}", ex.getMessage(), ex);
             AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
         } finally {
             CurrentContext.clear();
