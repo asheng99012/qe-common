@@ -154,11 +154,13 @@
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
             <version>4.0.3</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit</artifactId>
             <version>1.7.11.RELEASE</version>
+            <scope>provided</scope>
         </dependency>
 
 
