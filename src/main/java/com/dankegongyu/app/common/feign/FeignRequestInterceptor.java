@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Enumeration;
 
-@Configuration
 public class FeignRequestInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {

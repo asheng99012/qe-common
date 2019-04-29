@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
 public class RpcService {
     private static Map<String, KV> pairMap = new HashMap<>();
 

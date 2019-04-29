@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ashen on 2017-2-14.
  */
-@Service
 public class RedisService {
 
     private RedisTemplate redisTemplate;

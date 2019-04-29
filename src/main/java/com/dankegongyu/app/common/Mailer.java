@@ -32,9 +32,7 @@ import org.springframework.stereotype.Service;
 /**
  * Created by ashen on 2017-2-8.
  */
-@Service
-@ConfigurationProperties(prefix = "mail")
-@ConditionalOnProperty(prefix = "mail", name = "host")
+
 public class Mailer extends JavaMailSenderImpl {
     private static final Logger logger = LoggerFactory.getLogger(Mailer.class);
     private String from;
