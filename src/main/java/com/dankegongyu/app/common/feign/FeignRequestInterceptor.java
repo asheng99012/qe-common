@@ -18,17 +18,17 @@ import java.util.Enumeration;
 public class FeignRequestInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
-        HttpServletRequest request = Current.getRequest();
-        if (request == null)
-            request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        if (request != null) {
-            Enumeration enumeration = request.getHeaderNames();
-            while (enumeration.hasMoreElements()) {
-                String key = enumeration.nextElement().toString();
-                if (!template.headers().containsKey(key))
-                    template.header(key, request.getHeader(key));
-            }
-        }
-        template.header("CurrentContext", Base64Utils.encodeToString(CurrentContext.toJson().getBytes()));
+//        HttpServletRequest request = Current.getRequest();
+//        if (request == null)
+//            request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+//        if (request != null) {
+//            Enumeration enumeration = request.getHeaderNames();
+//            while (enumeration.hasMoreElements()) {
+//                String key = enumeration.nextElement().toString();
+//                if (!template.headers().containsKey(key))
+//                    template.header(key, request.getHeader(key));
+//            }
+//        }
+        template.header(FeignFilter.key, Base64Utils.encodeToString(CurrentContext.toJson().getBytes()));
     }
 }

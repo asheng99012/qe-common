@@ -7,6 +7,7 @@ import com.dankegongyu.app.common.exception.NeedLoginException;
 import com.dankegongyu.app.common.exception.ParameterException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
 
-@WebFilter(filterName = "current", urlPatterns = {"/*"})
+//@WebFilter(filterName = "current", urlPatterns = {"/*"})
 public class Current implements Filter, ApplicationContextAware {
     private static ThreadLocal controllerContext = new ThreadLocal();
     private static final Logger logger = LoggerFactory.getLogger(Current.class);
@@ -49,6 +50,7 @@ public class Current implements Filter, ApplicationContextAware {
     private static ApplicationContext appContext = null;
     public static final String SERVERIP = Current.getNewLocalIP();  //当前服务IP
     private static String errorPage = "/error";
+    private static List<String> excludes = new ArrayList<>();
 
     public Current() {
     }
@@ -368,6 +370,9 @@ public class Current implements Filter, ApplicationContextAware {
         String errpath = filterConfig.getInitParameter(errorPage);
         if (!Strings.isNullOrEmpty(errpath))
             errorPage = errpath;
+        String exclude = filterConfig.getInitParameter("exclude");
+        if (!Strings.isNullOrEmpty(exclude))
+            excludes = Splitter.on(";").splitToList(exclude);
     }
 
     public static void setTraceId() {
@@ -381,6 +386,7 @@ public class Current implements Filter, ApplicationContextAware {
         setContext(req, res);
         CurrentContext.initFromSession();
         Long start = new Date().getTime();
+        String url = req.getRequestURI();
         try {
 //            MDC.put("traceId", UUID19.randomUUID());
             String traceId = req.getParameter("traceId");
@@ -388,7 +394,9 @@ public class Current implements Filter, ApplicationContextAware {
                 TraceIdUtils.setTraceId();
             else
                 TraceIdUtils.setTraceId(traceId);
-            logger.info(getRequestOtherInfo());
+            if (isNeedLog(url)) {
+                logger.info(getRequestOtherInfo());
+            }
             filterChain.doFilter(req, servletResponse);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -408,7 +416,9 @@ public class Current implements Filter, ApplicationContextAware {
             }
 
         } finally {
-            logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
+            if (isNeedLog(url)) {
+                logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
+            }
             MDC.clear();
             remove();
         }
@@ -465,4 +475,13 @@ public class Current implements Filter, ApplicationContextAware {
         if ((!(ex instanceof BaseException) || ex instanceof NeedEmailException) && mailer != null)
             mailer.sendMail(subject, msg);
     }
+
+    public static boolean isNeedLog(String url) {
+        for (String exclude : excludes) {
+            if (url.matches(exclude))
+                return false;
+        }
+        return true;
+    }
+
 }

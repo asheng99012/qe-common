@@ -24,7 +24,11 @@ public class FeignFilter implements Filter {
         if (!Strings.isNullOrEmpty(json)) {
             CurrentContext.resetFromJson(new String(Base64Utils.decodeFromString(json)));
         }
-        chain.doFilter(request, response);
+        try {
+            chain.doFilter(request, response);
+        }finally {
+            CurrentContext.clear();
+        }
     }
 
     @Override

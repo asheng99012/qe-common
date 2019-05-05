@@ -4,19 +4,39 @@ import com.dankegongyu.app.common.feign.FeignFilter;
 import com.dankegongyu.app.common.feign.FeignRequestInterceptor;
 import com.dankegongyu.app.common.feign.LoadBalancerFeignClientFilter;
 import feign.Client;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.cloud.openfeign.ribbon.CachingSpringLoadBalancerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import javax.annotation.Resource;
+
 @Configuration
-@Import({Current.class, FeignFilter.class})
+@Import({FeignFilter.class})
 public class Config {
+    @Autowired
+    private Environment environment;
+
+    @Bean
+    public FilterRegistrationBean current() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new Current());
+        registration.addUrlPatterns("/*");
+        if (environment.getProperty("filter.current.exclude") != null)
+            registration.addInitParameter("exclude", environment.getProperty("filter.current.exclude"));
+        registration.setName("current");
+        return registration;
+    }
+
+
     @Bean
     AppUtils appUtils() {
         return new AppUtils();
