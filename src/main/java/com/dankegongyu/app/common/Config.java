@@ -46,10 +46,10 @@ public class Config {
     }
 
     @Bean
-    @ConditionalOnBean(Mock.class)
+//    @ConditionalOnBean(Mock.class)
     public Client feignClient(CachingSpringLoadBalancerFactory cachingFactory,
                               SpringClientFactory clientFactory) {
-        return new LoadBalancerFeignClientFilter(new Client.Default(null, null), cachingFactory, clientFactory);
+        return new LoadBalancerFeignClientFilter(new LoadBalancerFeignClientFilter.ClientFilter(null, null), cachingFactory, clientFactory);
     }
 
     @Bean(name = "springSessionDefaultRedisSerializer")
