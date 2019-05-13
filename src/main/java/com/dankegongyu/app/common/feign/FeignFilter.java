@@ -9,7 +9,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@WebFilter(filterName = "current", urlPatterns = {"/*"})
+@WebFilter(filterName = "feignFilter", urlPatterns = {"/*"})
 public class FeignFilter implements Filter {
     public static String key="CurrentContext";
     @Override
