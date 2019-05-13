@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 
 @ControllerAdvice
 public class JsonRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter {
@@ -23,7 +24,10 @@ public class JsonRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter {
     public Object handleEmptyBody(@Nullable Object body, HttpInputMessage inputMessage,
                                   MethodParameter parameter, Type targetType,
                                   Class<? extends HttpMessageConverter<?>> converterType) {
-
-        return JsonUtils.convert(FormFilter.getParameters(), targetType);
+        Map data = FormFilter.getParameters();
+        if (targetType.getTypeName().equals("java.lang.Object[]") && data.containsKey("data"))
+            return JsonUtils.convert(data.get("data"), targetType);
+        else
+            return JsonUtils.convert(data, targetType);
     }
 }

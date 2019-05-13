@@ -1,8 +1,6 @@
 package com.dankegongyu.app.common;
 
-import com.dankegongyu.app.common.feign.FeignFilter;
-import com.dankegongyu.app.common.feign.FeignRequestInterceptor;
-import com.dankegongyu.app.common.feign.LoadBalancerFeignClientFilter;
+import com.dankegongyu.app.common.feign.*;
 import feign.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -30,7 +28,7 @@ public class Config {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         registration.setFilter(new Current());
         registration.addUrlPatterns("/*");
-        if (environment.getProperty("filter.current.exclude") != null)
+        if (environment != null && environment.getProperty("filter.current.exclude") != null)
             registration.addInitParameter("exclude", environment.getProperty("filter.current.exclude"));
         registration.setName("current");
         return registration;
@@ -81,5 +79,17 @@ public class Config {
     @Bean
     public RpcService rpcService() {
         return new RpcService();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "commRpc", name = "locations")
+    public CommRpcDefinitionRegistryPostProcessor qeormBeanDefinitionRegistryPostProcessor(Environment env) {
+        return new CommRpcDefinitionRegistryPostProcessor(env);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "commRpc", name = "enable")
+    public CommRpc commRpc() {
+        return new CommRpc();
     }
 }
