@@ -1,22 +1,25 @@
 package com.dankegongyu.app.common.feign;
 
-import com.dankegongyu.app.common.AppUtils;
-import com.dankegongyu.app.common.CurrentContext;
-import com.dankegongyu.app.common.Mock;
+import com.dankegongyu.app.common.*;
+import com.dankegongyu.app.common.log.RecordRpcLog;
 import feign.Client;
 import feign.Request;
 import feign.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.cloud.openfeign.ribbon.CachingSpringLoadBalancerFactory;
 import org.springframework.cloud.openfeign.ribbon.FeignLoadBalancer;
 import org.springframework.cloud.openfeign.ribbon.LoadBalancerFeignClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.NamedThreadLocal;
 import org.springframework.util.Base64Utils;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -50,8 +53,8 @@ public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
 
 
     public static class ClientFilter implements Client {
-
-        private String body;
+        Logger logger = LoggerFactory.getLogger(ClientFilter.class);
+        private final ThreadLocal<Map<String, Object>> resources = new NamedThreadLocal<Map<String, Object>>(ClientFilter.class.getName());
         private final SSLSocketFactory sslContextFactory;
         private final HostnameVerifier hostnameVerifier;
 
@@ -65,8 +68,11 @@ public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
 
         @Override
         public Response execute(Request request, Request.Options options) throws IOException {
+            resources.remove();
+            getSource().put("start", new Date());
             HttpURLConnection connection = convertAndSend(request, options);
             Response response = convertResponse(connection, request);
+            log(request, response);
             return response;
         }
 
@@ -168,9 +174,9 @@ public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
             } else {
                 stream = connection.getInputStream();
             }
-            body = inputStream2String(stream);
+            getSource().put("body", inputStream2String(stream));
             stream.close();
-            stream = string2InputStream(body);
+            stream = string2InputStream(getSource().get("body").toString());
             return Response.builder()
                     .status(status)
                     .reason(reason)
@@ -200,5 +206,32 @@ public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
             return stream;
         }
 
+        public Map<String, Object> getSource() {
+            Map<String, Object> map = resources.get();
+            if (map == null) {
+                map = new HashMap<String, Object>();
+                resources.set(map);
+            }
+            return map;
+        }
+
+        public void log(Request request, Response response) {
+            try {
+                RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("rpcLog");
+                if (log != null) {
+                    String url = request.url();
+                    URI uri = new URI(url);
+                    log.record(TraceIdUtils.getTraceId().split("-")[0]
+                            , TraceIdUtils.getTraceId()
+                            , (Date) getSource().get("start"), new Date(), "rpcLog", "", Current.SERVERIP
+                            , uri.getHost() + ":" + uri.getPort(), url
+                            , request.httpMethod().name(), request.headers()
+                            , JsonUtils.convert(request.requestBody().asString(), Map.class), uri.getHost()
+                            , response.status() == 200, response.status(), getSource().get("body").toString());
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
 }
