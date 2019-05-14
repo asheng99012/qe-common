@@ -1,6 +1,8 @@
 package com.dankegongyu.app.common.canal;
 
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Mapping {
+    static Logger logger = LoggerFactory.getLogger(Mapping.class);
     private static Map<String, Converter> mysqlTypeMapping;
     private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -33,8 +36,14 @@ public class Mapping {
         }
         try {
             return simpleDateFormat.parse(data);
-        } catch (ParseException e) {
-            return null;
+        } catch (Exception e) {
+            logger.error("{} error:{}", data, e.getMessage(), e);
+            try {
+                return simpleDateFormat.parse(data);
+            } catch (Exception ex) {
+                logger.error("{} error:{}", data, ex.getMessage(), ex);
+                throw new RuntimeException(e.getMessage(), e.getCause());
+            }
         }
     }
 
