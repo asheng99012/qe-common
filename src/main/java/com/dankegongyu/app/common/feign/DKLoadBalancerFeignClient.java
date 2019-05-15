@@ -1,74 +1,100 @@
 package com.dankegongyu.app.common.feign;
 
-import com.dankegongyu.app.common.*;
+import com.dankegongyu.app.common.AppUtils;
+import com.dankegongyu.app.common.Current;
+import com.dankegongyu.app.common.JsonUtils;
+import com.dankegongyu.app.common.TraceIdUtils;
 import com.dankegongyu.app.common.log.RecordRpcLog;
 import feign.Client;
 import feign.Request;
 import feign.Response;
+import feign.Target;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cglib.proxy.Enhancer;
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.cloud.openfeign.ribbon.CachingSpringLoadBalancerFactory;
-import org.springframework.cloud.openfeign.ribbon.FeignLoadBalancer;
 import org.springframework.cloud.openfeign.ribbon.LoadBalancerFeignClient;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.NamedThreadLocal;
-import org.springframework.util.Base64Utils;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
-import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static feign.Util.*;
 import static java.lang.String.format;
 
-public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
-    public LoadBalancerFeignClientFilter(Client delegate, CachingSpringLoadBalancerFactory lbClientFactory, SpringClientFactory clientFactory) {
+public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
+
+    public DKLoadBalancerFeignClient(Client delegate, CachingSpringLoadBalancerFactory lbClientFactory, SpringClientFactory clientFactory) {
         super(delegate, lbClientFactory, clientFactory);
     }
 
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
-        String ori_url = request.url();
-        String url = ori_url;
-        if (AppUtils.getBean(Mock.class) != null)
-            url = AppUtils.getBean(Mock.class).mockUrl(request.url());
-//重新构建 request　对象
-        Request newRequest = Request.create(request.httpMethod(), url, request.headers(), request.requestBody());
-        if (ori_url.equals(url))
-            return super.execute(newRequest, options);
-        else return super.getDelegate().execute(newRequest, options);
+        DefaultClient.getSource().put("oriUrl", request.url());
+        return this.getDelegate().execute(request, options);
     }
 
+    public static class FeiginProxy implements MethodInterceptor {
 
-    public static class ClientFilter implements Client {
-        Logger logger = LoggerFactory.getLogger(ClientFilter.class);
-        private final ThreadLocal<Map<String, Object>> resources = new NamedThreadLocal<Map<String, Object>>(ClientFilter.class.getName());
+        public Proxy proxy;
+        public Target.HardCodedTarget target;
+
+        public static Object proxy(Proxy proxy) {
+            Object object = Proxy.getInvocationHandler(proxy);
+            try {
+                FeiginProxy feiginProxy = new FeiginProxy();
+                feiginProxy.proxy = proxy;
+                Field field = object.getClass().getDeclaredField("target");
+                field.setAccessible(true);
+                feiginProxy.target = (Target.HardCodedTarget) field.get(object);
+                Enhancer enhancer = new Enhancer();
+                enhancer.setInterfaces(new Class[]{feiginProxy.target.type()});
+                enhancer.setCallback(feiginProxy);
+                return enhancer.create();
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e.getCause());
+            }
+        }
+
+        @Override
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+            DefaultClient.clear();
+            DefaultClient.getSource().put("type", target.type().getName() + "." + method.getName());
+            return method.invoke(proxy, objects);
+        }
+    }
+
+    public static class DefaultClient implements Client {
+        Logger logger = LoggerFactory.getLogger(DefaultClient.class);
+        private final static ThreadLocal<Map<String, Object>> resources = new NamedThreadLocal<Map<String, Object>>(DefaultClient.class.getName());
         private final SSLSocketFactory sslContextFactory;
         private final HostnameVerifier hostnameVerifier;
 
         /**
          * Null parameters imply platform defaults.
          */
-        public ClientFilter(SSLSocketFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+        public DefaultClient(SSLSocketFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
             this.sslContextFactory = sslContextFactory;
             this.hostnameVerifier = hostnameVerifier;
         }
 
         @Override
         public Response execute(Request request, Request.Options options) throws IOException {
-            resources.remove();
             getSource().put("start", new Date());
             HttpURLConnection connection = convertAndSend(request, options);
             Response response = convertResponse(connection, request);
@@ -206,13 +232,17 @@ public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
             return stream;
         }
 
-        public Map<String, Object> getSource() {
+        public static Map<String, Object> getSource() {
             Map<String, Object> map = resources.get();
             if (map == null) {
                 map = new HashMap<String, Object>();
                 resources.set(map);
             }
             return map;
+        }
+
+        public static void clear() {
+            resources.remove();
         }
 
         public void log(Request request, Response response) {
@@ -223,9 +253,8 @@ public class LoadBalancerFeignClientFilter extends LoadBalancerFeignClient {
                     URI uri = new URI(url);
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
-                            , (Date) getSource().get("start"), new Date(), "rpcLog", "", Current.SERVERIP
-                            , uri.getHost() + ":" + uri.getPort(), url
-                            , request.httpMethod().name(), request.headers()
+                            , (Date) getSource().get("start"), new Date(), getSource().get("type").toString(), "", Current.SERVERIP
+                            , url, request.httpMethod().name(), request.headers()
                             , JsonUtils.convert(request.requestBody().asString(), Map.class), uri.getHost()
                             , response.status() == 200, response.status(), getSource().get("body").toString());
                 }

@@ -7,6 +7,8 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -43,27 +45,38 @@ public class LogFilter implements Filter {
         if (!isNeedLog(url)) {
             chain.doFilter(request, response);
         } else {
+            String type = "localLog";
+            try {
+                Object handler = AppUtils.getBean(HandlerMapping.class).getHandler((HttpServletRequest) request).getHandler();
+                if (handler instanceof HandlerMethod) {
+                    HandlerMethod method = (HandlerMethod) handler;
+                    type = method.getBeanType().getName() + "." + method.getMethod().getName();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             if (recordResult)
-                logAll(request, response, chain);
+                logAll(request, response, chain, type);
             else
-                logRequest(request, response, chain);
+                logRequest(request, response, chain, type);
         }
     }
 
-    public void logRequest(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void logRequest(ServletRequest request, ServletResponse response, FilterChain chain, String type) throws IOException, ServletException {
         //todo  log
         RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("localLog");
         if (log != null) {
             HttpServletRequest req = (HttpServletRequest) request;
             log.record(TraceIdUtils.getTraceId().split("-")[0]
                     , TraceIdUtils.getTraceId()
-                    , new Date(), new Date(), "localLog", "", Current.getRemortIP(), "", req.getRequestURL().toString()
+                    , new Date(), new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
                     , req.getMethod(), null, FormFilter.getParameters(), Current.SERVERIP, true, 200, null);
         }
         chain.doFilter(request, response);
     }
 
-    public void logAll(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
+    public void logAll(ServletRequest request, ServletResponse response, FilterChain chain, String type) throws IOException {
         ByteResponseWrapper byteResponseWrapper = new ByteResponseWrapper((HttpServletResponse) response);
         String jsonResponseString = null;
         String exceptionMsg = null;
@@ -96,7 +109,7 @@ public class LogFilter implements Filter {
                     HttpServletRequest req = (HttpServletRequest) request;
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
-                            , sendRequestAt, new Date(), "localLog", "", Current.getRemortIP(), "", req.getRequestURL().toString()
+                            , sendRequestAt, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
                             , req.getMethod(), null, FormFilter.getParameters(), Current.SERVERIP
                             , jsonResponseString != null, 200, jsonResponseString != null ? jsonResponseString : exceptionMsg);
                 }
