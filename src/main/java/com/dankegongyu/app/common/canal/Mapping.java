@@ -34,12 +34,13 @@ public class Mapping {
         if (data.indexOf(" ") == -1) {
             data = data + " 00:00:00";
         }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
-            return simpleDateFormat.parse(data);
+            return format.parse(data);
         } catch (Exception e) {
             logger.error("{} error:{}", data, e.getMessage(), e);
             try {
-                return simpleDateFormat.parse(data);
+                return format.parse(data);
             } catch (Exception ex) {
                 logger.error("{} error:{}", data, ex.getMessage(), ex);
                 throw new RuntimeException(e.getMessage(), e.getCause());
