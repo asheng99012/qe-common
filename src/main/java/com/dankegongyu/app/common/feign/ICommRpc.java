@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.*;
 public interface ICommRpc {
 
     @ResponseBody
-    @PostMapping("/commrpc/{service}/{action}")
+    @PostMapping("commrpc/{service}/{action}")
     public Object exec(@PathVariable("service") String service, @PathVariable("action") String action, @RequestBody Object[] args);
 }

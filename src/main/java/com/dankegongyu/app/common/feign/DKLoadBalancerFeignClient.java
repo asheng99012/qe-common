@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -46,6 +47,12 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
         DefaultClient.getSource().put("oriUrl", request.url());
+        if (!DefaultClient.getSource().containsKey("type")) {
+            try {
+                DefaultClient.getSource().put("type", new URI(request.url()).getPath().replace("/commrpc/", "").replace("/", "."));
+            } catch (URISyntaxException e) {
+            }
+        }
         return this.getDelegate().execute(request, options);
     }
 
@@ -74,7 +81,8 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
         @Override
         public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
             DefaultClient.clear();
-            DefaultClient.getSource().put("type", target.type().getName() + "." + method.getName());
+            if (!ICommRpc.class.isAssignableFrom(target.type()))
+                DefaultClient.getSource().put("type", target.type().getName() + "." + method.getName());
             return method.invoke(proxy, objects);
         }
     }
@@ -251,11 +259,16 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                 if (log != null) {
                     String url = request.url();
                     URI uri = new URI(url);
+                    Map reqp = new HashMap();
+                    try {
+                        reqp = JsonUtils.convert(request.requestBody().asString(), Map.class);
+                    } catch (Exception e) {
+                    }
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
                             , (Date) getSource().get("start"), new Date(), getSource().get("type").toString(), "", Current.SERVERIP
                             , url, request.httpMethod().name(), request.headers()
-                            , JsonUtils.convert(request.requestBody().asString(), Map.class), uri.getHost()
+                            , reqp, uri.getHost()
                             , response.status() == 200, response.status(), getSource().get("body").toString());
                 }
             } catch (Exception e) {
