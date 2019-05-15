@@ -52,14 +52,13 @@ public class LogFilter implements Filter {
                     HandlerMethod method = (HandlerMethod) handler;
                     type = method.getBeanType().getName() + "." + method.getMethod().getName();
                 }
-
+                if (recordResult)
+                    logAll(request, response, chain, type);
+                else
+                    logRequest(request, response, chain, type);
             } catch (Exception e) {
-                e.printStackTrace();
             }
-            if (recordResult)
-                logAll(request, response, chain, type);
-            else
-                logRequest(request, response, chain, type);
+
         }
     }
 
