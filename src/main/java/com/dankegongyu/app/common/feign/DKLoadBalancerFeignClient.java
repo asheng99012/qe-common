@@ -46,12 +46,17 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
 
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
-        DefaultClient.getSource().put("oriUrl", request.url());
-        if (!DefaultClient.getSource().containsKey("type")) {
-            try {
-                DefaultClient.getSource().put("type", new URI(request.url()).getPath().replace("/commrpc/", "").replace("/", "."));
-            } catch (URISyntaxException e) {
+        if (!DefaultClient.getSource().containsKey("oriUrl")) {
+            DefaultClient.getSource().put("oriUrl", request.url());
+            if (!DefaultClient.getSource().containsKey("type")) {
+                try {
+                    DefaultClient.getSource().put("type", new URI(request.url()).getPath().replace("//commrpc/", "").replace("/commrpc/", "").replace("/", "."));
+                } catch (URISyntaxException e) {
+                }
             }
+        }
+        if ((Boolean) DefaultClient.getSource().get("redirect")) {
+            return ((LoadBalancerFeignClient) this.getDelegate()).getDelegate().execute(request, options);
         }
         return this.getDelegate().execute(request, options);
     }
@@ -83,6 +88,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             DefaultClient.clear();
             if (!ICommRpc.class.isAssignableFrom(target.type()))
                 DefaultClient.getSource().put("type", target.type().getName() + "." + method.getName());
+            DefaultClient.getSource().put("redirect", !target.url().contains(target.name()));
             return method.invoke(proxy, objects);
         }
     }
@@ -104,8 +110,13 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
         @Override
         public Response execute(Request request, Request.Options options) throws IOException {
             getSource().put("start", new Date());
-            HttpURLConnection connection = convertAndSend(request, options);
-            Response response = convertResponse(connection, request);
+            Response response = null;
+            try {
+                HttpURLConnection connection = convertAndSend(request, options);
+                response = convertResponse(connection, request);
+            } catch (Exception e) {
+                getSource().put("body", e.getMessage());
+            }
             log(request, response);
             return response;
         }
@@ -263,13 +274,18 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                     try {
                         reqp = JsonUtils.convert(request.requestBody().asString(), Map.class);
                     } catch (Exception e) {
+                        try {
+                            reqp.put("data", request.requestBody().asString());
+                        } catch (Exception ex) {
+                            reqp.put("data", ex.getMessage());
+                        }
                     }
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
                             , (Date) getSource().get("start"), new Date(), getSource().get("type").toString(), "", Current.SERVERIP
                             , url, request.httpMethod().name(), request.headers()
                             , reqp, uri.getHost()
-                            , response.status() == 200, response.status(), getSource().get("body").toString());
+                            , response != null && response.status() == 200, response != null ? response.status() : 0, getSource().get("body").toString());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

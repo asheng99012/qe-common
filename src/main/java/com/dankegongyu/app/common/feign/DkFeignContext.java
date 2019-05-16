@@ -55,7 +55,8 @@ public class DkFeignContext extends FeignContext {
 
     public Object dkwrap(Object bean) {
         if (bean instanceof LoadBalancerFeignClient && !(bean instanceof DKLoadBalancerFeignClient)) {
-            return new DKLoadBalancerFeignClient((LoadBalancerFeignClient) bean, factory(), (SpringClientFactory) clientFactory());
+            Client client = new DKLoadBalancerFeignClient((LoadBalancerFeignClient) bean, factory(), (SpringClientFactory) clientFactory());
+            return new DKLoadBalancerFeignClient(client, factory(), (SpringClientFactory) clientFactory());
         }
         return bean;
     }

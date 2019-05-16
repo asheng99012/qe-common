@@ -33,8 +33,8 @@ public interface RecordRpcLog {
         @Override
         public void record(String traceId, String childTraceId, Date start, Date end, String type, String dataId, String fromIp, String targetUrl, String httpMethod, Map header, Map params, String toIp, boolean isError, int headerStatus, Object result) {
             //fromIp
-            logger.info("从[{}]发起到[{}]的请求[{}],参数为：[{}]，返回值是[{}]，耗时[{}] "
-                    , fromIp, toIp, targetUrl, JsonUtils.toJson(params), JsonUtils.toJson(result), end.getTime() - start.getTime());
+            logger.info("[{}]从[{}]发起到[{}]的请求[{}],参数为：[{}]，返回值是[{}]，耗时[{}] "
+                    , type, fromIp, toIp, targetUrl, JsonUtils.toJson(params), JsonUtils.toJson(result), end.getTime() - start.getTime());
         }
     }
 }

@@ -46,16 +46,23 @@ public class LogFilter implements Filter {
             chain.doFilter(request, response);
         } else {
             String type = "localLog";
+            Object handler = null;
             try {
-                Object handler = AppUtils.getBean(HandlerMapping.class).getHandler((HttpServletRequest) request).getHandler();
-                if (handler instanceof HandlerMethod) {
+                handler = AppUtils.getBean(HandlerMapping.class).getHandler((HttpServletRequest) request).getHandler();
+            } catch (Exception e) {
+                chain.doFilter(request, response);
+            }
+
+            try {
+                if (handler != null && handler instanceof HandlerMethod) {
                     HandlerMethod method = (HandlerMethod) handler;
                     type = method.getBeanType().getName() + "." + method.getMethod().getName();
+                    if (recordResult)
+                        logAll(request, response, chain, type);
+                    else
+                        logRequest(request, response, chain, type);
                 }
-                if (recordResult)
-                    logAll(request, response, chain, type);
-                else
-                    logRequest(request, response, chain, type);
+
             } catch (Exception e) {
             }
 
@@ -65,14 +72,15 @@ public class LogFilter implements Filter {
     public void logRequest(ServletRequest request, ServletResponse response, FilterChain chain, String type) throws IOException, ServletException {
         //todo  log
         RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("localLog");
+        Date start = new Date();
+        chain.doFilter(request, response);
         if (log != null) {
             HttpServletRequest req = (HttpServletRequest) request;
             log.record(TraceIdUtils.getTraceId().split("-")[0]
                     , TraceIdUtils.getTraceId()
-                    , new Date(), new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
+                    , start, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
                     , req.getMethod(), null, FormFilter.getParameters(), Current.SERVERIP, true, 200, null);
         }
-        chain.doFilter(request, response);
     }
 
     public void logAll(ServletRequest request, ServletResponse response, FilterChain chain, String type) throws IOException {
