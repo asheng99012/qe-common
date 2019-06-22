@@ -1,17 +1,19 @@
 package com.dankegongyu.app.common;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 @Component
-public class AppUtils {
+public class AppUtils implements ApplicationContextAware {
     private static ApplicationContext appContext = null;
 
-    @Autowired
-    public void setApplicationContext(ApplicationContext paramApplicationContext) {
-        AppUtils.appContext = paramApplicationContext;
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException{
+        AppUtils.appContext = applicationContext;
     }
 
     //获取applicationContext
