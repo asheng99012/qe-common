@@ -76,7 +76,7 @@ public class DkAppAutoConfiguration {
     }
 
     @Bean
-//    @ConditionalOnBean(Mock.class)
+    @ConditionalOnBean(CachingSpringLoadBalancerFactory.class)
     public Client feignClient(CachingSpringLoadBalancerFactory cachingFactory,
                               SpringClientFactory clientFactory) {
         return new LoadBalancerFeignClient(new DKLoadBalancerFeignClient.DefaultClient(null, null), cachingFactory, clientFactory);

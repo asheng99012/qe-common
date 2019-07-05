@@ -1,11 +1,11 @@
 package com.dankegongyu.app.common.mq;
 
 import com.dankegongyu.app.common.*;
-import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
+import com.rabbitmq.client.Channel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.UnsupportedEncodingException;
@@ -45,7 +45,8 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
             exec(message, channel);
         } catch (Exception ex) {
             logger.error(getBody(message) + "|  from mq handler error:{}", ex.getMessage(), ex);
-            AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
+            if (AppUtils.getBean(DeadLetterListener.class) != null)
+                AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
         } finally {
             CurrentContext.clear();
             Long costTime = new Date().getTime() - start;

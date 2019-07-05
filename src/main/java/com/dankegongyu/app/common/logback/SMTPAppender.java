@@ -38,30 +38,18 @@ public class SMTPAppender<E> extends OutputStreamAppender<E> {
             @Override
             public void write(byte b[], int off, int len) throws IOException {
                 ILoggingEvent event = threadLocalEvent.get();
-                if (event.getLevel().levelInt == Level.ERROR.levelInt) {
-                    if (event != null && event.getLoggerName().indexOf("Mail") > 0) return;
-                    String log = new String(b, Charsets.UTF_8);
-                    int i = log.indexOf("\n");
-                    String subject = log.substring(0, i);
-                    String msg = subject + "\n<br />" + Current.getRequestOtherInfo() + log.substring(i);
-                    System.out.println(msg);
-                    Mailer mailer = Mailer.getMailer();
-                    if (mailer != null)
-                        mailer.sendMail(subject, msg);
-                }
+                if (event != null && event.getLoggerName().indexOf("Mail") > 0) return;
+                String log = new String(b, Charsets.UTF_8);
+                int i = log.indexOf("\n");
+                String subject = log.substring(0, i);
+                String msg = subject + "\n<br />" + Current.getRequestOtherInfo() + log.substring(i);
+                System.out.println(msg);
+                Mailer mailer = Mailer.getMailer();
+                if (mailer != null)
+                    mailer.sendMail(subject, msg);
             }
 
         });
         super.start();
-    }
-
-
-    protected void writeOut(E event) throws IOException {
-        if (event instanceof ILoggingEvent) {
-            threadLocalEvent.set((ILoggingEvent) event);
-        } else {
-            threadLocalEvent.set(null);
-        }
-        this.encoder.encode(event);
     }
 }

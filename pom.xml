@@ -109,7 +109,10 @@
             <artifactId>spring-cloud-sleuth-core</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
 <!--
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -165,18 +168,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.rabbitmq</groupId>
-            <artifactId>amqp-client</artifactId>
-            <version>4.0.3</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.amqp</groupId>
-            <artifactId>spring-rabbit</artifactId>
-            <version>1.7.11.RELEASE</version>
-            <scope>provided</scope>
-        </dependency>
+
 
 
         <dependency>
@@ -196,17 +188,6 @@
             <artifactId>mail</artifactId>
             <version>1.4.7</version>
         </dependency>
-
-
-
-
-        <dependency>
-            <groupId>com.qiniu</groupId>
-            <artifactId>qiniu-java-sdk</artifactId>
-            <version>7.2.6</version>
-        </dependency>
-
-
 
         <dependency>
             <groupId>com.alibaba</groupId>

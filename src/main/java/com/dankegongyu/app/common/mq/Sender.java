@@ -8,10 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.support.CorrelationData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -19,10 +17,12 @@ import java.util.Map;
 
 public class Sender {
     static Logger logger = LoggerFactory.getLogger(Sender.class);
-    @Autowired
     RabbitTemplate rabbitTemplate;
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
+    public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     public void send(String routingKey, Object msg) {
         send(rabbitTemplate.getExchange(), routingKey, msg);
