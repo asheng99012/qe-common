@@ -16,6 +16,17 @@ public class Proxy implements MethodInterceptor {
     private Class targetClass;
     private String routingkey;
 
+    public static <T> T proxy(T obj) {
+        return proxy((Class<T>) obj.getClass());
+    }
+
+    public static <T> T proxy(Class<T> klass) {
+        return proxy(klass, AppUtils.getBean(Sender.class).defaultRoutingKey);
+    }
+
+    public static <T> T proxy(T obj, String key) {
+        return proxy((Class<T>) obj.getClass(), key);
+    }
 
     public static <T> T proxy(Class<T> klass, String key) {
         Proxy proxy = new Proxy();

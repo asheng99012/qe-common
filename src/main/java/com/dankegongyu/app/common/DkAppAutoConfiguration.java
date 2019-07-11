@@ -115,7 +115,6 @@ public class DkAppAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean(RedisTemplate.class)
     public RedisService redisService() {
         return new RedisService();
     }

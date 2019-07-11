@@ -34,7 +34,7 @@ public class RedisService {
 
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
-        GenericJackson2JsonRedisSerializer jackson2JsonRedisSerializer1=new GenericJackson2JsonRedisSerializer();
+        GenericJackson2JsonRedisSerializer jackson2JsonRedisSerializer1 = new GenericJackson2JsonRedisSerializer();
 
         redisTemplate.setKeySerializer(stringSerializer);
         redisTemplate.setHashKeySerializer(stringSerializer);
@@ -47,27 +47,30 @@ public class RedisService {
 //    private Boolean disable;
 
     public RedisTemplate getRedisTemplate() {
+        if (redisTemplate == null) {
+            setRedisTemplate(AppUtils.getBean(RedisTemplate.class));
+        }
         return redisTemplate;
     }
 
     public void set(String key, Object object) {
 //        if (disable) return;
-        redisTemplate.opsForValue().set(key, object);
+        getRedisTemplate().opsForValue().set(key, object);
     }
 
     public void set(String key, Object object, int minute) {
 //        if (disable) return;
-        redisTemplate.opsForValue().set(key, object, minute, TimeUnit.MINUTES);
+        getRedisTemplate().opsForValue().set(key, object, minute, TimeUnit.MINUTES);
     }
 
 
     public void del(String key) {
-        redisTemplate.delete(key);
+        getRedisTemplate().delete(key);
     }
 
 
     public <T> T get(String key) {
-        return (T) redisTemplate.opsForValue().get(key);
+        return (T) getRedisTemplate().opsForValue().get(key);
     }
 
     public <T> T get(String key, Function<String, T> function) {
@@ -75,7 +78,7 @@ public class RedisService {
     }
 
     public <T> T get(String key, Function<String, T> function, Integer minute) {
-        ValueOperations<String, T> ops = redisTemplate.opsForValue();
+        ValueOperations<String, T> ops = getRedisTemplate().opsForValue();
         T val = ops.get(key);
         if (val == null) {
             val = (T) function.apply(key);

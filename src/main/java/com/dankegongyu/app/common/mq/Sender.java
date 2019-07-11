@@ -18,10 +18,15 @@ import java.util.Map;
 public class Sender {
     static Logger logger = LoggerFactory.getLogger(Sender.class);
     RabbitTemplate rabbitTemplate;
+    String defaultRoutingKey;
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
+    }
+
+    public void setDefaultRoutingKey(String defaultRoutingKey){
+        this.defaultRoutingKey=defaultRoutingKey;
     }
 
     public void send(String routingKey, Object msg) {
