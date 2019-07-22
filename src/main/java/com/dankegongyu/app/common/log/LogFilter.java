@@ -64,6 +64,7 @@ public class LogFilter implements Filter {
                 }
 
             } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(),e.getCause());
             }
 
         }
@@ -73,7 +74,11 @@ public class LogFilter implements Filter {
         //todo  log
         RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("localLog");
         Date start = new Date();
-        chain.doFilter(request, response);
+        try {
+            chain.doFilter(request, response);
+        }catch (Exception e){
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        }
         if (log != null) {
             HttpServletRequest req = (HttpServletRequest) request;
             log.record(TraceIdUtils.getTraceId().split("-")[0]

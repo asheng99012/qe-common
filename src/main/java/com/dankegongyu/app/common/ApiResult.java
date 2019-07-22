@@ -5,7 +5,7 @@ package com.dankegongyu.app.common;
  */
 public class ApiResult<T> {
     private Integer status;
-    private String msg;
+    private String message;
     private T data;
 
 
@@ -20,21 +20,18 @@ public class ApiResult<T> {
 
     public ApiResult(String msg) {
         this.status = 1;
-        this.msg = msg;
+        this.message = msg;
     }
 
     public ApiResult(String msg, Integer code) {
         this.status = code;
-        this.msg = msg;
+        this.message = msg;
     }
 
     public void setStatus(int status) {
         this.status = status;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
 
     public void setData(T data) {
         this.data = data;
@@ -44,8 +41,18 @@ public class ApiResult<T> {
         return status;
     }
 
+    public String getMessage() {
+        return message;
+    }
     public String getMsg() {
-        return msg;
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+    public void setMsg(String message) {
+        this.message = message;
     }
 
     public T getData() {
