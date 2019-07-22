@@ -48,6 +48,7 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
             if (AppUtils.getBean(DeadLetterListener.class) != null)
                 AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
         } finally {
+//            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
             CurrentContext.clear();
             Long costTime = new Date().getTime() - start;
             logger.info("cost time:{}", costTime);

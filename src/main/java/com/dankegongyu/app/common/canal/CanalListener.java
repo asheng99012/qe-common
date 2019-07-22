@@ -62,6 +62,7 @@ public class CanalListener extends BaseListener implements ApplicationListener<C
                     processMap.put(value, proList);
                 }
                 proList.add((Process) bean);
+                logger.info(value.table() + "--" + bean.getClass().getTypeName());
             }
         }
     }
