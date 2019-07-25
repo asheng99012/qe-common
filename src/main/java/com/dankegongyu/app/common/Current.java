@@ -39,7 +39,7 @@ public class Current implements Filter, ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(Current.class);
     public Map<String, Object> context;
 
-    private static final String REQUEST = "javax.servlet.http.HttpServletRequest";
+    public static final String REQUEST = "javax.servlet.http.HttpServletRequest";
     private static final String RESPONSE = "javax.servlet.http.HttpServletResponse";
     private static final String SESSION = "javax.servlet.http.HttpSession";
     private static final String COOKIE = "javax.servlet.http.HttpCookie";
@@ -397,7 +397,7 @@ public class Current implements Filter, ApplicationContextAware {
             if (isNeedLog(url)) {
                 logger.info(getRequestOtherInfo());
             }
-            filterChain.doFilter(req, servletResponse);
+            filterChain.doFilter(getRequest(), getResponse());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             ApiResult result = GlobalExceptionHandler.getErrorResult(e);
@@ -440,7 +440,11 @@ public class Current implements Filter, ApplicationContextAware {
             HttpServletRequest req = (HttpServletRequest) Current.getRequest();
             msg.add("参数信息为 : ");
             msg.add(JsonUtils.toJson(req.getParameterMap()));
-            msg.add(JsonUtils.toJson(FormFilter.getParameters()));
+            try {
+                msg.add(JsonUtils.toJson(FormFilter.getParameters()));
+            }catch (Exception e){
+
+            }
             msg.add("header信息为 : ");
             msg.add(JsonUtils.toJson(getHeaderInfo()));
             msg.add("cookie信息为 : ");
@@ -451,6 +455,8 @@ public class Current implements Filter, ApplicationContextAware {
         msg.add("");
         return StringUtils.join(msg, " <br />");
     }
+
+
 
     private static Map getHeaderInfo() {
         Map map = new HashMap();

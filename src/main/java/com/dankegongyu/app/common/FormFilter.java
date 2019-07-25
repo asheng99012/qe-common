@@ -12,6 +12,9 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +45,8 @@ public class FormFilter {
             ServletFileUpload upload = new ServletFileUpload(factory);
             upload.setFileSizeMax(50 * 1024 * 1024);
             Map<String, List<FileItem>> map = upload.parseParameterMap(request);
+            if (map.keySet().size() == 0)
+                return springMultipartResolver(filterNull);
             Iterator entries = map.entrySet().iterator();
             Map.Entry entry;
             String name = "";
@@ -64,6 +69,62 @@ public class FormFilter {
             Current.set(key, returnMap);
             return returnMap;
         }
+    }
+
+    private static Map<String, Object> springMultipartResolver(boolean filterNull) {
+        Map<String, Object> returnMap = new HashMap<>();
+        MultipartHttpServletRequest request = new StandardServletMultipartResolver().resolveMultipart(Current.getRequest());
+        Map properties = request.getParameterMap();
+
+
+        Iterator entries = properties.entrySet().iterator();
+        Map.Entry entry;
+        String name = "";
+        String value = "";
+        while (entries.hasNext()) {
+            entry = (Map.Entry) entries.next();
+            name = (String) entry.getKey();
+            Object valueObj = entry.getValue();
+            if (null == valueObj) {
+                value = "";
+            } else if (valueObj instanceof String[]) {
+                String[] values = (String[]) valueObj;
+                for (int i = 0; i < values.length; i++) {
+                    value = decode(values[i]) + ",";
+                }
+                value = value.substring(0, value.length() - 1);
+            } else {
+                value = decode(valueObj.toString());
+            }
+            value = StringUtils.trim(value);
+            if (!filterNull || !Strings.isNullOrEmpty(value))
+                returnMap.put(StringUtils.trim(name), value);
+        }
+
+        Map<String, MultipartFile> multipartFileMap = request.getFileMap();
+        for (Map.Entry<String, MultipartFile> entry1 : multipartFileMap.entrySet()) {
+            returnMap.put(entry1.getKey(), entry1.getValue());
+        }
+        if (returnMap.keySet().size() > 0)
+            Current.set(Current.REQUEST, request);
+        return returnMap;
+    }
+
+
+    private static Map<String, Object[]> springMultipartResolver() {
+        Map<String, Object[]> returnMap = new HashMap<>();
+        MultipartHttpServletRequest request = new StandardServletMultipartResolver().resolveMultipart(Current.getRequest());
+        Map<String, String[]> params = request.getParameterMap();
+        if (params != null && params.keySet().size() > 0) {
+            returnMap.putAll(params);
+        }
+        Map<String, MultipartFile> multipartFileMap = request.getFileMap();
+        for (Map.Entry<String, MultipartFile> entry1 : multipartFileMap.entrySet()) {
+            returnMap.put(entry1.getKey(), new Object[]{entry1.getValue()});
+        }
+        if (returnMap.keySet().size() > 0)
+            Current.set(Current.REQUEST, request);
+        return returnMap;
     }
 
     private static Map<String, Object> getParamsData(boolean filterNull) throws FileUploadException {
@@ -175,6 +236,7 @@ public class FormFilter {
 
         return Current.getRequest() != null && Current.getRequest().getContentType() != null && Current.getRequest().getContentType().indexOf("json") > 0;
     }
+
     private static boolean isXml() {
 
         return Current.getRequest() != null && Current.getRequest().getContentType() != null && Current.getRequest().getContentType().indexOf("xml") > 0;
@@ -184,17 +246,17 @@ public class FormFilter {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-            InputStream in=Current.getRequest().getInputStream();
+            InputStream in = Current.getRequest().getInputStream();
             byte[] buffer = new byte[2048];
             int length = 0;
-            while((length = in.read(buffer)) != -1) {
+            while ((length = in.read(buffer)) != -1) {
                 bos.write(buffer, 0, length);//写入输出流
             }
             in.close();//读取完毕，关闭输入流
 
-            String xml= new String(bos.toByteArray(), "UTF-8");
-            Map<String,Object> map=new HashMap<>();
-            map.put("data",xml);
+            String xml = new String(bos.toByteArray(), "UTF-8");
+            Map<String, Object> map = new HashMap<>();
+            map.put("data", xml);
             return map;
 //            return JSON.parseObject(sb.toString());
         } catch (IOException e) {
@@ -256,6 +318,8 @@ public class FormFilter {
             Map<String, List<FileItem>> map = null;
             try {
                 map = upload.parseParameterMap(Current.getRequest());
+                if (map.keySet().size() == 0)
+                    return springMultipartResolver();
                 Iterator entries = map.entrySet().iterator();
                 Map.Entry entry;
                 String name = "";
@@ -304,10 +368,9 @@ public class FormFilter {
             Map<String, Object> returnMap = Maps.newHashMap();
             if (isJson()) {
                 returnMap = getPostJson();
-            }else if(isXml()){
+            } else if (isXml()) {
                 returnMap = getPostXml();
-            }
-            else {
+            } else {
                 Map<String, Object[]> properties = getRealParameterMap();
                 Iterator entries = properties.entrySet().iterator();
                 Map.Entry entry;
@@ -317,7 +380,7 @@ public class FormFilter {
                     name = (String) entry.getKey();
                     Object[] val = (Object[]) entry.getValue();
                     if (val != null && val.length > 0) {
-                        if (val[0] instanceof FileItem)
+                        if (val[0] instanceof FileItem || val[0] instanceof MultipartFile)
                             returnMap.put(name, val[0]);
                         else {
                             String value = "";
