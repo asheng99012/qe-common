@@ -19,6 +19,7 @@ import org.springframework.cloud.sleuth.instrument.web.client.feign.TraceFeignCl
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -32,6 +33,17 @@ public class DkAppAutoConfiguration {
 
     @Autowired
     private Environment environment;
+
+    @Bean
+    @Order(-1)
+    @ConditionalOnProperty(name = "cosAllow")
+    public FilterRegistrationBean cosFilter() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new CosFilter());
+        registration.addUrlPatterns("/*");
+        registration.setName("cosFilter");
+        return registration;
+    }
 
     @Bean
     public FilterRegistrationBean current() {
@@ -56,6 +68,7 @@ public class DkAppAutoConfiguration {
         registration.setName("logFilter");
         return registration;
     }
+
     @Bean
     public FilterRegistrationBean feignFilter() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
