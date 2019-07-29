@@ -24,7 +24,7 @@ public class CosFilter implements Filter {
         response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
         response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type,x-requested-with,Authorization");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , x-sso-ticket");
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         filterChain.doFilter(servletRequest, servletResponse);
