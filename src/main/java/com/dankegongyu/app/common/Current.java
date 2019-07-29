@@ -441,7 +441,7 @@ public class Current implements Filter, ApplicationContextAware {
             msg.add("参数信息为 : ");
             msg.add(JsonUtils.toJson(req.getParameterMap()));
             try {
-                msg.add(JsonUtils.toJson(FormFilter.getParameters()));
+                msg.add(JsonUtils.toJson(FormFilter.getParametersCanJson()));
             }catch (Exception e){
 
             }

@@ -84,7 +84,7 @@ public class LogFilter implements Filter {
             log.record(TraceIdUtils.getTraceId().split("-")[0]
                     , TraceIdUtils.getTraceId()
                     , start, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
-                    , req.getMethod(), null, FormFilter.getParameters(), Current.SERVERIP, true, 200, null);
+                    , req.getMethod(), null, FormFilter.getParametersCanJson(), Current.SERVERIP, true, 200, null);
         }
     }
 
@@ -122,7 +122,7 @@ public class LogFilter implements Filter {
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
                             , sendRequestAt, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
-                            , req.getMethod(), null, FormFilter.getParameters(), Current.SERVERIP
+                            , req.getMethod(), null, FormFilter.getParametersCanJson(), Current.SERVERIP
                             , jsonResponseString != null, 200, jsonResponseString != null ? jsonResponseString : exceptionMsg);
                 }
 

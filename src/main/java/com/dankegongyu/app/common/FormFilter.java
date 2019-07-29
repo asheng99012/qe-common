@@ -198,6 +198,17 @@ public class FormFilter {
         return getParameters(false);
     }
 
+    public static Map<String, Object> getParametersCanJson() {
+        Map<String, Object> params = getParameters();
+        Map<String, Object> _data = new HashMap<>();
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            if (!(entry.getValue() instanceof MultipartFile)) {
+                _data.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return _data;
+    }
+
     private static Map<String, Object[]> getRealParameterMap() {
         boolean isMultipart = ServletFileUpload.isMultipartContent(Current.getRequest());
         if (isMultipart) return getEnctypeParamsData();
