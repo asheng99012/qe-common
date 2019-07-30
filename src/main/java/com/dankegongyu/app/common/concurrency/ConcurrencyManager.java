@@ -31,6 +31,12 @@ public class ConcurrencyManager<K, T> {
     ConcurrencyContext context;
     private boolean over = false;
 
+    public static ConcurrencyManager build() {
+        ConcurrencyManager factory = new ConcurrencyManager();
+        factory.context = new ConcurrencyContext(-1);
+        return factory;
+    }
+
     public static ConcurrencyManager build(long timeout) {
         ConcurrencyManager factory = new ConcurrencyManager();
         factory.context = new ConcurrencyContext(timeout);
@@ -68,7 +74,11 @@ public class ConcurrencyManager<K, T> {
             ).submit();
         }
         try {
-            latch.await(context.getTimeout(), TimeUnit.MILLISECONDS);
+            if (context.getTimeout() == -1) {
+                latch.await();
+            } else {
+                latch.await(context.getTimeout(), TimeUnit.MILLISECONDS);
+            }
 //            latch.await();
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
@@ -139,7 +149,7 @@ public class ConcurrencyManager<K, T> {
                     logger.error("task {} failure,result {}", key, t.getMessage(), t);
                     latch.countDown();
                 }
-            },pool);
+            }, pool);
         }
     }
 }
