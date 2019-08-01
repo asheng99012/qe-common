@@ -41,6 +41,8 @@ public class DkAppAutoConfiguration {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         registration.setFilter(new CosFilter());
         registration.addUrlPatterns("/*");
+        if (environment != null && environment.getProperty("filter.cosFilter.allow.header") != null)
+            registration.addInitParameter("allowHeader", environment.getProperty("filter.cosFilter.allow.header"));
         registration.setName("cosFilter");
         return registration;
     }
