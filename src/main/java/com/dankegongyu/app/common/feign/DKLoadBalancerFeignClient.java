@@ -24,6 +24,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
@@ -42,6 +43,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
 
     public DKLoadBalancerFeignClient(Client delegate, CachingSpringLoadBalancerFactory lbClientFactory, SpringClientFactory clientFactory) {
         super(delegate, lbClientFactory, clientFactory);
+        replaceClient(delegate);
     }
 
     @Override
@@ -59,6 +61,37 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             return ((LoadBalancerFeignClient) this.getDelegate()).getDelegate().execute(request, options);
         }
         return this.getDelegate().execute(request, options);
+    }
+
+    public void replaceClient(Client client) {
+        if (client instanceof LoadBalancerFeignClient) {
+            replaceClient(((LoadBalancerFeignClient) client).getDelegate());
+        } else {
+            Field field = null;
+            try {
+                field = client.getClass().getDeclaredField("delegate");
+            } catch (NoSuchFieldException e) {
+                try {
+                    field = client.getClass().getField("delegate");
+                } catch (NoSuchFieldException e1) {
+
+                }
+            }
+            if (field != null) {
+                field.setAccessible(true);
+                try {
+                    Client _c = (Client) field.get(client);
+                    if (_c.getClass().getName().equals(Client.Default.class.getName())) {
+                        field.set(client, new DefaultClient());
+                    } else {
+                        replaceClient(_c);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
     public static class FeiginProxy implements MethodInterceptor {
@@ -89,7 +122,11 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             if (!ICommRpc.class.isAssignableFrom(target.type()))
                 DefaultClient.getSource().put("type", target.type().getName() + "." + method.getName());
             DefaultClient.getSource().put("redirect", !target.url().contains(target.name()));
-            return method.invoke(proxy, objects);
+            try {
+                return method.invoke(proxy, objects);
+            } catch (InvocationTargetException e) {
+                throw e.getTargetException();
+            }
         }
     }
 
@@ -98,6 +135,11 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
         private final static ThreadLocal<Map<String, Object>> resources = new NamedThreadLocal<Map<String, Object>>(DefaultClient.class.getName());
         private final SSLSocketFactory sslContextFactory;
         private final HostnameVerifier hostnameVerifier;
+
+        public DefaultClient() {
+            sslContextFactory = null;
+            hostnameVerifier = null;
+        }
 
         /**
          * Null parameters imply platform defaults.
@@ -116,6 +158,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                 response = convertResponse(connection, request);
             } catch (Exception e) {
                 getSource().put("body", e.getMessage());
+                throw e;
             }
             log(request, response);
             return response;
@@ -275,9 +318,12 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                         reqp = JsonUtils.convert(request.requestBody().asString(), Map.class);
                     } catch (Exception e) {
                         try {
-                            reqp.put("data", request.requestBody().asString());
+                            String data = request.requestBody().asString();
+                            if (!data.equals("Binary data"))
+                                reqp.put("data", data);
+
                         } catch (Exception ex) {
-                            reqp.put("data", ex.getMessage());
+//                            reqp.put("data", ex.getMessage());
                         }
                     }
                     log.record(TraceIdUtils.getTraceId().split("-")[0]

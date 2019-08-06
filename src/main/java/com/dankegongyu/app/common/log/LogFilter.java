@@ -53,19 +53,19 @@ public class LogFilter implements Filter {
                 chain.doFilter(request, response);
             }
 
-            try {
-                if (handler != null && handler instanceof HandlerMethod) {
-                    HandlerMethod method = (HandlerMethod) handler;
-                    type = method.getBeanType().getName() + "." + method.getMethod().getName();
-                    if (recordResult)
-                        logAll(request, response, chain, type);
-                    else
-                        logRequest(request, response, chain, type);
-                }
-
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(),e.getCause());
+//            try {
+            if (handler != null && handler instanceof HandlerMethod) {
+                HandlerMethod method = (HandlerMethod) handler;
+                type = method.getBeanType().getName() + "." + method.getMethod().getName();
+                if (recordResult)
+                    logAll(request, response, chain, type);
+                else
+                    logRequest(request, response, chain, type);
             }
+
+//            } catch (Exception e) {
+//                throw new RuntimeException(e.getMessage(),e.getCause());
+//            }
 
         }
     }
@@ -76,19 +76,19 @@ public class LogFilter implements Filter {
         Date start = new Date();
         try {
             chain.doFilter(request, response);
-        }catch (Exception e){
-            throw new RuntimeException(e.getMessage(), e.getCause());
+        } finally {
+            if (log != null) {
+                HttpServletRequest req = (HttpServletRequest) request;
+                log.record(TraceIdUtils.getTraceId().split("-")[0]
+                        , TraceIdUtils.getTraceId()
+                        , start, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
+                        , req.getMethod(), null, FormFilter.getParametersCanJson(), Current.SERVERIP, true, 200, null);
+            }
         }
-        if (log != null) {
-            HttpServletRequest req = (HttpServletRequest) request;
-            log.record(TraceIdUtils.getTraceId().split("-")[0]
-                    , TraceIdUtils.getTraceId()
-                    , start, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
-                    , req.getMethod(), null, FormFilter.getParametersCanJson(), Current.SERVERIP, true, 200, null);
-        }
+
     }
 
-    public void logAll(ServletRequest request, ServletResponse response, FilterChain chain, String type) throws IOException {
+    public void logAll(ServletRequest request, ServletResponse response, FilterChain chain, String type) throws IOException, ServletException {
         ByteResponseWrapper byteResponseWrapper = new ByteResponseWrapper((HttpServletResponse) response);
         String jsonResponseString = null;
         String exceptionMsg = null;
@@ -104,16 +104,6 @@ public class LogFilter implements Filter {
                 exceptionMsg = GlobalExceptionHandler.getCurrentThreadError();
             }
 
-        } catch (Exception e) {
-            Throwable t = GlobalExceptionHandler.getRealThrowable(e);
-            if (!(t instanceof BaseException)) {
-                Current.sendErrorMsg(t);
-            }
-            logger.error(e.getMessage(), e);
-            String msg = t.getMessage();
-            exceptionMsg = GlobalExceptionHandler.getCurrentThreadError();
-            throw new RuntimeException(e.getMessage(), e.getCause());
-//            response.getOutputStream().write(JsonUtils.toJson(new ApiResult(msg)).getBytes(Charsets.UTF_8));
         } finally {
             try {
                 RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("localLog");

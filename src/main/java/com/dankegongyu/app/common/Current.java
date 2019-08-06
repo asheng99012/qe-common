@@ -399,7 +399,7 @@ public class Current implements Filter, ApplicationContextAware {
             }
             filterChain.doFilter(getRequest(), getResponse());
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+//            logger.error(e.getMessage(), e);
             ApiResult result = GlobalExceptionHandler.getErrorResult(e);
             try {
                 if (Current.isAjax()) {
@@ -416,9 +416,9 @@ public class Current implements Filter, ApplicationContextAware {
             }
 
         } finally {
-            if (isNeedLog(url)) {
-                logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
-            }
+//            if (isNeedLog(url)) {
+//                logger.info("[耗时]：{} : {}", req.getRequestURI(), new Date().getTime() - start);
+//            }
             MDC.clear();
             remove();
         }

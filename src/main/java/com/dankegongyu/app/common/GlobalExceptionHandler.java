@@ -68,7 +68,7 @@ public class GlobalExceptionHandler implements HandlerExceptionResolver {
             }
         }
         Current.sendErrorMsg(t);
-        logger.error(t.getMessage(), t);
+//        logger.error(t.getMessage(), t);
         return result;
     }
 
