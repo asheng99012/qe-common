@@ -33,7 +33,7 @@ public class BaseController {
         return JsonUtils.convert(map, klass);
     }
 
-    public <T> T getModelFromParameter(Class<T> klass,boolean filterBlank) {
+    public <T> T getModelFromParameter(Class<T> klass, boolean filterBlank) {
         Map<String, Object> map = FormFilter.getParameters(true);
         Map<String, Object> data = new HashMap<>();
         map.forEach((key, val) -> {
@@ -70,14 +70,15 @@ public class BaseController {
      * @return
      * @throws IOException
      */
-    public String toCsv(List list, String[] column, String[] chineses)throws IOException{
-       return toCsv(list,column,chineses,"");
+    public String toCsv(List list, String[] column, String[] chineses) throws IOException {
+        return toCsv(list, column, chineses, "");
     }
-    public String toCsv(List list, String[] column, String[] chineses,String title) throws IOException {
+
+    public String toCsv(List list, String[] column, String[] chineses, String title) throws IOException {
         HttpServletResponse response = Current.getResponse();
         response.setContentType("application/octet-stream");
 //        response.setHeader("Content-type","text/csv");
-        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(String.valueOf(title), "UTF-8")+"_"+System.currentTimeMillis() + ".csv");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(String.valueOf(title), "UTF-8") + "_" + System.currentTimeMillis() + ".csv");
         response.setHeader("Cache-Control", "must-revalidate,post-check=0,pre-check=0");
         response.setHeader("'Expires", "0");
         response.setHeader("Pragma", "public");
@@ -87,7 +88,7 @@ public class BaseController {
         System.arraycopy(commonCsvHead, 0, data, 0, commonCsvHead.length);
         System.arraycopy(csv, 0, data, commonCsvHead.length, csv.length);
         Current.getRequest().setAttribute(MODEL, new String(data, Charsets.UTF_8));
-        return "json";
+        return "page/json";
     }
 
     /**
@@ -97,7 +98,7 @@ public class BaseController {
      * @throws IOException
      */
 
-    public String toCsvWithRelation(List list, String[] column, String[] chineses,String title) throws IOException {
+    public String toCsvWithRelation(List list, String[] column, String[] chineses, String title) throws IOException {
         HttpServletResponse response = Current.getResponse();
         response.setContentType("application/octet-stream");
 //        response.setHeader("Content-type","text/csv");
@@ -114,15 +115,17 @@ public class BaseController {
 //        response.getOutputStream().flush();
         // response.getOutputStream().close();
         Current.getRequest().setAttribute(MODEL, new String(data, Charsets.UTF_8));
-        return "json";
+        return "page/json";
     }
 
     public String toCsv(List list) throws IOException {
         return toCsv(list, null, null);
     }
-    public String toCsv(List list,String title) throws IOException {
-        return toCsv(list, null, null,title);
+
+    public String toCsv(List list, String title) throws IOException {
+        return toCsv(list, null, null, title);
     }
+
     public String toCsv(List list, String[] column) throws IOException {
         return toCsv(list, column, null);
     }
@@ -131,7 +134,7 @@ public class BaseController {
         if (!(model instanceof ApiResult)) model = new ApiResult(model);
         BaseController.writeJsonToClient(model);
         Current.set("tojson", "tojson");
-        return "json";
+        return "page/json";
     }
 
 
@@ -151,7 +154,7 @@ public class BaseController {
 
         Current.getRequest().setAttribute(MODEL, model);
 
-        return  viewPath;
+        return "page/" + viewPath;
     }
 
     public String toView(Object model) {
