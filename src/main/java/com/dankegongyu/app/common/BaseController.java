@@ -158,7 +158,8 @@ public class BaseController {
     }
 
     public String toView(Object model) {
-        return toView(Current.getRequest().getServletPath(), model);
+        String viewPath=Current.getRequest().getServletPath().substring(1);
+        return toView(viewPath, model);
     }
 
     public String toView() {
