@@ -51,6 +51,7 @@ public class Current implements Filter, ApplicationContextAware {
     public static final String SERVERIP = Current.getNewLocalIP();  //当前服务IP
     private static String errorPage = "/error";
     private static List<String> excludes = new ArrayList<>();
+    private static boolean isApi=false;
 
     public Current() {
     }
@@ -373,6 +374,9 @@ public class Current implements Filter, ApplicationContextAware {
         String exclude = filterConfig.getInitParameter("exclude");
         if (!Strings.isNullOrEmpty(exclude))
             excludes = Splitter.on(";").splitToList(exclude);
+        if (!Strings.isNullOrEmpty(filterConfig.getInitParameter("isApi"))) {
+            isApi = true;
+        }
     }
 
     public static void setTraceId() {
@@ -380,6 +384,9 @@ public class Current implements Filter, ApplicationContextAware {
     }
 
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        if (isApi) {
+            Current.set("tojson", true);
+        }
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         req.setCharacterEncoding("UTF-8");
         HttpServletResponse res = (HttpServletResponse) servletResponse;
@@ -442,7 +449,7 @@ public class Current implements Filter, ApplicationContextAware {
             msg.add(JsonUtils.toJson(req.getParameterMap()));
             try {
                 msg.add(JsonUtils.toJson(FormFilter.getParametersCanJson()));
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
             msg.add("header信息为 : ");
@@ -455,7 +462,6 @@ public class Current implements Filter, ApplicationContextAware {
         msg.add("");
         return StringUtils.join(msg, " <br />");
     }
-
 
 
     private static Map getHeaderInfo() {
