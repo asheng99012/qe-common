@@ -75,7 +75,7 @@ public class BaseController {
     }
     public String toCsv(List list, String[] column, String[] chineses,String title) throws IOException {
         HttpServletResponse response = Current.getResponse();
-        response.setContentType("application/octet-stream");
+//        response.setContentType("application/octet-stream");
 //        response.setHeader("Content-type","text/csv");
         response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(String.valueOf(title), "UTF-8")+"_"+System.currentTimeMillis() + ".csv");
         response.setHeader("Cache-Control", "must-revalidate,post-check=0,pre-check=0");
@@ -155,7 +155,8 @@ public class BaseController {
     }
 
     public String toView(Object model) {
-        return toView(Current.getRequest().getServletPath(), model);
+        String viewPath=Current.getRequest().getServletPath().substring(1);
+        return toView(viewPath, model);
     }
 
     public String toView() {
