@@ -49,6 +49,8 @@ public class CanalListener extends BaseListener implements ApplicationListener<C
     public void onApplicationEvent(ContextRefreshedEvent event) {
         logger.info("CanalListener init");
         processMap = Maps.newConcurrentMap();
+        if (AppUtils.getApplicationContext() == null) return;
+        
         Map<String, Object> beansWithAnnotationMap = AppUtils.getApplicationContext().getBeansWithAnnotation(Filter.class);
         for (Map.Entry<String, Object> entry : beansWithAnnotationMap.entrySet()) {
             Object bean = entry.getValue();
