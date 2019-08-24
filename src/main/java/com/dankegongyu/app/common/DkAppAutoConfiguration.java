@@ -3,6 +3,7 @@ package com.dankegongyu.app.common;
 import com.dankegongyu.app.common.feign.*;
 import com.dankegongyu.app.common.log.LogFilter;
 import com.dankegongyu.app.common.log.RecordRpcLog;
+import com.google.common.base.Splitter;
 import feign.Client;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.List;
 
 @Configuration
 @AutoConfigureAfter({TraceFeignClientAutoConfiguration.class})
@@ -54,6 +57,8 @@ public class DkAppAutoConfiguration {
         registration.addUrlPatterns("/*");
         if (environment != null && environment.getProperty("filter.current.exclude") != null)
             registration.addInitParameter("exclude", environment.getProperty("filter.current.exclude"));
+        if (environment != null && environment.getProperty("filter.current.isApi") != null)
+            registration.addInitParameter("isApi", environment.getProperty("filter.current.isApi"));
         registration.setName("current");
         return registration;
     }
@@ -68,6 +73,23 @@ public class DkAppAutoConfiguration {
         if (environment != null && environment.getProperty("filter.logFilter.recordResult") != null)
             registration.addInitParameter("recordResult", environment.getProperty("filter.logFilter.recordResult"));
         registration.setName("logFilter");
+        return registration;
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "filter.internal", name = "notAllowDomain")
+    public FilterRegistrationBean internalFilter() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new InternalFilter());
+        if (environment != null && environment.getProperty("filter.internal.notAllowDomain") != null)
+            registration.addInitParameter("notAllowDomain", environment.getProperty("filter.internal.notAllowDomain"));
+        if (environment != null && environment.getProperty("filter.internal.urlPatterns") != null) {
+            List<String> allowUrls = Splitter.on(",").splitToList(environment.getProperty("filter.internal.urlPatterns"));
+            for (String url : allowUrls) {
+                registration.addUrlPatterns(url);
+            }
+        }
+        registration.setName("internalFilter");
         return registration;
     }
 
