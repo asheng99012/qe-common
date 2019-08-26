@@ -5,6 +5,7 @@ import com.dankegongyu.app.common.*;
 import com.dankegongyu.app.common.exception.BaseException;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
@@ -107,13 +108,14 @@ public class LogFilter implements Filter {
         } finally {
             try {
                 RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("localLog");
+                if (exceptionMsg == null) exceptionMsg = getErrorMsg();
                 if (log != null) {
                     HttpServletRequest req = (HttpServletRequest) request;
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
                             , sendRequestAt, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
                             , req.getMethod(), null, FormFilter.getParametersCanJson(), Current.SERVERIP
-                            , jsonResponseString != null, 200, jsonResponseString != null ? jsonResponseString : exceptionMsg);
+                            , exceptionMsg == null, 200, exceptionMsg != null ? exceptionMsg : jsonResponseString);
                 }
 
             } catch (Exception e) {
@@ -192,5 +194,13 @@ public class LogFilter implements Filter {
         public void setWriteListener(WriteListener listener) {
 
         }
+    }
+
+    public static void setException(Exception e) {
+        Current.set(LogFilter.class + ".error", e.getMessage() + "\r\n" + ExceptionUtils.getStackTrace(e));
+    }
+
+    public static String getErrorMsg() {
+        return Current.get(LogFilter.class + ".error");
     }
 }

@@ -331,7 +331,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                             , (Date) getSource().get("start"), new Date(), getSource().get("type").toString(), "", Current.SERVERIP
                             , url, request.httpMethod().name(), request.headers()
                             , reqp, uri.getHost()
-                            , response != null && response.status() == 200, response != null ? response.status() : 0, getSource().get("body").toString());
+                            , (response != null && response.status() == 200) ? false : true, response != null ? response.status() : 0, getSource().get("body").toString());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
