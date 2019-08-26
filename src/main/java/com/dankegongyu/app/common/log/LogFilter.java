@@ -115,7 +115,7 @@ public class LogFilter implements Filter {
                             , TraceIdUtils.getTraceId()
                             , sendRequestAt, new Date(), type, "", Current.getRemortIP(), req.getRequestURL().toString()
                             , req.getMethod(), null, FormFilter.getParametersCanJson(), Current.SERVERIP
-                            , exceptionMsg == null, 200, exceptionMsg != null ? exceptionMsg : jsonResponseString);
+                            , exceptionMsg != null, 200, exceptionMsg != null ? exceptionMsg : jsonResponseString);
                 }
 
             } catch (Exception e) {
