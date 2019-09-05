@@ -52,6 +52,7 @@ public class Current implements Filter, ApplicationContextAware {
     private static String errorPage = "/error";
     private static List<String> excludes = new ArrayList<>();
     private static boolean isApi=false;
+    private static boolean isDealError=true;
 
     public Current() {
     }
@@ -377,6 +378,9 @@ public class Current implements Filter, ApplicationContextAware {
         if (!Strings.isNullOrEmpty(filterConfig.getInitParameter("isApi"))) {
             isApi = true;
         }
+        if (!Strings.isNullOrEmpty(filterConfig.getInitParameter("isDealError"))) {
+            isDealError = false;
+        }
     }
 
     public static void setTraceId() {
@@ -406,6 +410,8 @@ public class Current implements Filter, ApplicationContextAware {
             }
             filterChain.doFilter(getRequest(), getResponse());
         } catch (Exception e) {
+            if(!isDealError)
+                throw e;
 //            logger.error(e.getMessage(), e);
             ApiResult result = GlobalExceptionHandler.getErrorResult(e);
             try {

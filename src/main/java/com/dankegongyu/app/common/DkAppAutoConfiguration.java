@@ -59,6 +59,9 @@ public class DkAppAutoConfiguration {
             registration.addInitParameter("exclude", environment.getProperty("filter.current.exclude"));
         if (environment != null && environment.getProperty("filter.current.isApi") != null)
             registration.addInitParameter("isApi", environment.getProperty("filter.current.isApi"));
+        if (environment != null && environment.getProperty("filter.current.isDealError") != null)
+            registration.addInitParameter("isDealError", environment.getProperty("filter.current.isDealError"));
+
         registration.setName("current");
         return registration;
     }
