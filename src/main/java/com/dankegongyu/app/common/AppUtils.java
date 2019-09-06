@@ -18,8 +18,7 @@ public class AppUtils implements ApplicationContextAware {
 
     //获取applicationContext
     public static ApplicationContext getApplicationContext() {
-        if (AppUtils.appContext == null)
-            AppUtils.appContext = Current.getApplicationContext();
+
         return AppUtils.appContext;
     }
 

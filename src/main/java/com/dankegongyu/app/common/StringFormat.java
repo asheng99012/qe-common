@@ -48,9 +48,12 @@ public class StringFormat {
         Matcher m = p.matcher(str);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
-            m.appendReplacement(sb, operator.exec(m));
+            String ret=operator.exec(m);
+            ret=ret.replaceAll("\\\\","\\\\\\");
+            m.appendReplacement(sb, ret);
         }
         m.appendTail(sb);
+
         return sb.toString();
     }
     
