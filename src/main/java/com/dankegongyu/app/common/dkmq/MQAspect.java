@@ -15,6 +15,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 @Aspect
 @Slf4j
 public class MQAspect {
@@ -46,8 +48,9 @@ public class MQAspect {
         } finally {
             log.info("发送数据：" + JsonUtils.toJson(msg));
             if (mqlog != null) {
-                mqlog.log(key, msg.getTopic(), msg.getTag(), msg.getBornHost(), msg.getPayload(), msg, 0, "com.danke.infra.mq.common.producer.MessageTemplate",
-                        Strings.isNullOrEmpty(errmsg) ? true : false, errmsg);
+                mqlog.log(key, msg.getTopic(), msg.getTag(), msg.getBornHost(),
+                        msg.getPayload(), msg, 0, "com.danke.infra.mq.common.producer.MessageTemplate",
+                        Strings.isNullOrEmpty(errmsg) ?  "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()));
             }
         }
     }
@@ -79,8 +82,10 @@ public class MQAspect {
         } finally {
             log.info("消费数据：" + JsonUtils.toJson(msg) + ",结果：" + errmsg);
             if (mqlog != null) {
-                mqlog.log(msg.getMsgId(), msg.getTopic(), msg.getTag(), Current.getNewLocalIP(), msg.getPayload(), msg, msg.getReconsumeTimes(), type,
-                        Strings.isNullOrEmpty(errmsg) ? true : false, errmsg);
+
+                mqlog.log(msg.getMsgId(), msg.getTopic(), msg.getTag(),
+                        Current.getNewLocalIP(), msg.getPayload(), msg, msg.getReconsumeTimes(), type,
+                        Strings.isNullOrEmpty(errmsg) ? "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()));
             }
         }
     }

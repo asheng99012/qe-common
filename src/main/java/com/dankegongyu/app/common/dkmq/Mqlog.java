@@ -26,8 +26,8 @@ public class Mqlog {
     @Value("${mqlog.exclude}")
     private String exclude;
 
-    public void log(String key, String exchange, String routingkey, String ip, Object message, Object ext,int exeCount, String type, boolean status, String result) {
-        String sql = "insert into " + tableName + " (`traceid`,`key`,`exchange`,`routingkey`,`ip`,`message`,`ext`,`exeCount`,`create_at`,`type`,`status`,`result`) values({traceid},{key},{exchange},{routingkey},{ip},{message},{ext},{exeCount},{create_at},{type},{status},{result})";
+    public void log(String key, String exchange, String routingkey, String ip, Object message, Object ext, int exeCount, String type, String status, String result, Date StartDeliverTime) {
+        String sql = "insert into " + tableName + " (`traceid`,`key`,`exchange`,`routingkey`,`ip`,`message`,`exeCount`,`create_at`,`type`,`status`,`result`,`StartDeliverTime`) values({traceid},{key},{exchange},{routingkey},{ip},{message},{exeCount},{create_at},{type},{status},{result},{StartDeliverTime})";
         Map param = new HashMap() {{
             put("traceid", TraceIdUtils.getTraceId());
             put("key", key);
@@ -41,6 +41,7 @@ public class Mqlog {
             put("type", type);
             put("status", status);
             put("result", result);
+            put("StartDeliverTime", StartDeliverTime);
         }};
         if (isExclude(param.get("routingkey").toString())) return;
         try {
@@ -57,7 +58,7 @@ public class Mqlog {
 
 
     public List<Map> getList(Map param) {
-        String sql = "select * from " + tableName + " where traceid={traceid} and key={key} and exchange={exchange} and routingkey={routingkey} and type={type} and status={status} order by create_at desc";
+        String sql = "select * from " + tableName + " where traceid={traceid} and key={key} and exchange={exchange} and routingkey={routingkey} and type={type} and status={status} and create_at>={create_at_b} and create_at<={create_at_e} and StartDeliverTime>={StartDeliverTime_b} and StartDeliverTime<={StartDeliverTime_e} order by create_at desc";
         return SqlExecutor.execSql(sql, param, Map.class, dbName);
     }
 }
