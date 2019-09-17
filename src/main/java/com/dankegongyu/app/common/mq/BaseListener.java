@@ -1,6 +1,8 @@
 package com.dankegongyu.app.common.mq;
 
 import com.dankegongyu.app.common.*;
+import com.google.common.base.Strings;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
@@ -38,6 +40,7 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+        boolean isErr = false;
         try {
             logger.info("from mq receive channel:{}", JsonUtils.toJson(channel));
             logger.info("from mq receive params:{}", JsonUtils.toJson(message.getMessageProperties()));
@@ -45,6 +48,7 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
             exec(message, channel);
         } catch (Exception ex) {
             logger.error(getBody(message) + "|  from mq handler error:{}", ex.getMessage(), ex);
+            isErr = true;
             if (AppUtils.getBean(DeadLetterListener.class) != null)
                 AppUtils.getBean(DeadLetterListener.class).toDeadQueue(message, channel, ex);
         } finally {
@@ -52,6 +56,9 @@ public abstract class BaseListener implements ChannelAwareMessageListener {
             CurrentContext.clear();
             Long costTime = new Date().getTime() - start;
             logger.info("cost time:{}", costTime);
+            if (!isErr && AppUtils.getBean(Mqlog.class) != null) {
+                AppUtils.getBean(Mqlog.class).log(message, "2", true, "");
+            }
         }
 
     }
