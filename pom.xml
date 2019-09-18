@@ -204,13 +204,13 @@
         <dependency>
             <groupId>com.danke.infra</groupId>
             <artifactId>mq-client-starter</artifactId>
-            <version>2.0.4</version>
+            <version>2.0.6-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.danke.infra</groupId>
             <artifactId>mq-client-binder-rabbit</artifactId>
-            <version>2.0.4</version>
+            <version>2.0.6-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 

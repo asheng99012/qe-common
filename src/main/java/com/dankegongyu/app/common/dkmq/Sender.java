@@ -30,7 +30,6 @@ public class Sender {
     }
 
     public void send(String exchange, String routingKey, Object msg, Map<String, Object> headers) {
-        //todo msg需要添加自定义header
         messageTemplate.sendMessage(
                 Msg.builder().topic(exchange).tag(routingKey).payload(msg).build()
         );

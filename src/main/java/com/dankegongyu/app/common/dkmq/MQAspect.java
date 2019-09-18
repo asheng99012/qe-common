@@ -2,9 +2,7 @@ package com.dankegongyu.app.common.dkmq;
 
 import com.danke.infra.mq.common.Msg;
 import com.danke.infra.mq.common.producer.SendMessageResult;
-import com.dankegongyu.app.common.AppUtils;
-import com.dankegongyu.app.common.Current;
-import com.dankegongyu.app.common.JsonUtils;
+import com.dankegongyu.app.common.*;
 import com.dankegongyu.app.common.exception.BusinessException;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +34,7 @@ public class MQAspect {
         } else {
             msg = (Msg) point.getArgs()[0];
         }
+        msg.putUserProperties(CurrentContext.class.getName(), CurrentContext.toJson());
         String errmsg = "";
         String key = "";
         try {
@@ -50,7 +49,7 @@ public class MQAspect {
             if (mqlog != null) {
                 mqlog.log(key, msg.getTopic(), msg.getTag(), msg.getBornHost(),
                         msg.getPayload(), msg, 0, "com.danke.infra.mq.common.producer.MessageTemplate",
-                        Strings.isNullOrEmpty(errmsg) ?  "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()));
+                        Strings.isNullOrEmpty(errmsg) ? "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()));
             }
         }
     }
@@ -68,6 +67,12 @@ public class MQAspect {
         } else {
             msg = (Msg) point.getArgs()[0];
         }
+
+        if (msg.getUserProperties(CurrentContext.class.getName()) != null) {
+            CurrentContext.resetFromJson(msg.getUserProperties(CurrentContext.class.getName()));
+        }
+        TraceIdUtils.setTraceId();
+
         String errmsg = "";
         if (msg.getPayload() instanceof Proxy.ProxyStruct) {
             Proxy.ProxyStruct struct = (Proxy.ProxyStruct) msg.getPayload();
