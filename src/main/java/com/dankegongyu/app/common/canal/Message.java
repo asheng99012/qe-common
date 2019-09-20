@@ -24,27 +24,27 @@ public class Message {
     public static List<Message> fromJson(String json) {
         List<Message> list = new ArrayList<>();
         FlatMessage message = (new FlatMessage()).fromJson(json);
-        if (message.data != null && message.data.size() > 0) {
-            int len = message.data.size();
+        if (message.getData() != null && message.getData().size() > 0) {
+            int len = message.getData().size();
             for (int i = 0; i < len; i++) {
                 Message msg = new Message();
-                msg.setDatabase(message.database);
-                msg.setTable(message.table);
-                msg.setType(message.type);
-                msg.setExecuteTime(message.es);
-                msg.setMysqlType(message.mysqlType);
-                msg.setData(message.data.get(i));
-                if (message.old != null && message.old.size() > i)
-                    msg.setOld(message.old.get(i));
+                msg.setDatabase(message.getDatabase());
+                msg.setTable(message.getTable());
+                msg.setType(message.getType());
+                msg.setExecuteTime(message.getEs());
+                msg.setMysqlType(message.getMysqlType());
+                msg.setData(message.getData().get(i));
+                if (message.getOld() != null && message.getOld().size() > i)
+                    msg.setOld(message.getOld().get(i));
                 list.add(msg);
             }
         } else {
             Message msg = new Message();
-            msg.setDatabase(message.database);
-            msg.setTable(message.table);
-            msg.setType(message.type);
-            msg.setExecuteTime(message.es);
-            msg.setMysqlType(message.mysqlType);
+            msg.setDatabase(message.getDatabase());
+            msg.setTable(message.getTable());
+            msg.setType(message.getType());
+            msg.setExecuteTime(message.getEs());
+            msg.setMysqlType(message.getMysqlType());
             list.add(msg);
         }
         return list;
@@ -120,62 +120,6 @@ public class Message {
 
     public void setOld(Map<String, Object> old) {
         this.old = old;
-    }
-
-    private static class FlatMessage {
-        private String database;
-        private String table;
-        private String type;
-        private Date es;
-        private Map<String, String> mysqlType;
-        private List<Map<String, Object>> data;
-        private List<Map<String, Object>> old;
-
-        public FlatMessage fromJson(String json) {
-            FlatMessage message = JsonUtils.convert(json, FlatMessage.class);
-            convert(message.data, message.mysqlType);
-            convert(message.old, message.mysqlType);
-            return message;
-        }
-
-        private void convert(List<Map<String, Object>> dataList, Map<String, String> type) {
-            if (dataList != null && dataList.size() > 0) {
-                for (Map<String, Object> aDataList : dataList) {
-                    for (Map.Entry<String, Object> entry : aDataList.entrySet()) {
-                        if (entry.getValue() != null && !Strings.isNullOrEmpty(entry.getValue().toString()))
-                            entry.setValue(Mapping.converter(type.get(entry.getKey()), entry.getValue().toString()));
-                    }
-                }
-            }
-        }
-
-        public void setDatabase(String database) {
-            this.database = database;
-        }
-
-        public void setTable(String table) {
-            this.table = table;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public void setEs(Date es) {
-            this.es = es;
-        }
-
-        public void setMysqlType(Map<String, String> mysqlType) {
-            this.mysqlType = mysqlType;
-        }
-
-        public void setData(List<Map<String, Object>> data) {
-            this.data = data;
-        }
-
-        public void setOld(List<Map<String, Object>> old) {
-            this.old = old;
-        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.dankegongyu.app.common;
 
+import com.dankegongyu.app.common.canal.DkCanalListener;
 import com.dankegongyu.app.common.dkmq.MQAspect;
 import com.dankegongyu.app.common.dkmq.MqConfiguration;
 import com.dankegongyu.app.common.dkmq.Mqlog;
@@ -164,5 +165,8 @@ public class DkAppAutoConfiguration {
         return new CommRpc();
     }
 
-
+    @Bean
+    public DkCanalListener dkCanalListener() {
+        return new DkCanalListener();
+    }
 }
