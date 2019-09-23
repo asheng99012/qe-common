@@ -2,6 +2,7 @@ package com.dankegongyu.app.common.dkmq;
 
 import com.alibaba.fastjson.JSON;
 import com.dankegongyu.app.common.AppUtils;
+import com.dankegongyu.app.common.CurrentContext;
 import com.dankegongyu.app.common.JsonUtils;
 import com.dankegongyu.app.common.RpcService;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.core.env.Environment;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Proxy implements MethodInterceptor {
+    static Boolean _isAsync;
     private Class targetClass;
     private String routingkey;
 
@@ -45,10 +48,28 @@ public class Proxy implements MethodInterceptor {
         return (T) enhancer.create();
     }
 
+    private static boolean isAsync() {
+        if (_isAsync == null) {
+            Boolean ret = AppUtils.getBean(Environment.class).getProperty("proxy.async", Boolean.class);
+            if (ret != null)
+                _isAsync = ret;
+            else _isAsync = true;
+        }
+        return _isAsync;
+    }
+
     @Override
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
-        AppUtils.getBean(Sender.class).send(this.routingkey, ProxyStruct.builder().klass(targetClass.getName()).method(method.getName()).data(objects).build());
-        return null;
+        if (isAsync()) {
+            AppUtils.getBean(Sender.class).send(this.routingkey, ProxyStruct.builder().klass(targetClass.getName()).method(method.getName()).data(objects).build());
+            return null;
+        } else {
+            return AppUtils.getBean(RpcService.class).run(new Object[]{
+                            targetClass.getName(), method.getName()
+                    },
+                    JSON.parseArray(JsonUtils.toJson(objects)).toArray());
+        }
+
     }
 
     public static Object exec(ProxyStruct struct) {

@@ -43,6 +43,7 @@ public class MQAspect {
             return ret;
         } catch (Throwable t) {
             errmsg = t.getMessage() + ":" + ExceptionUtils.getStackTrace(t);
+            log.error(errmsg,t);
             throw new BusinessException(JsonUtils.toJson(msg) + ":" + t.getMessage(), t.getCause());
         } finally {
             log.info("发送数据：" + JsonUtils.toJson(msg));
