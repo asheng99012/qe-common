@@ -8,7 +8,9 @@ import com.dankegongyu.app.common.dkmq.Sender;
 import com.dankegongyu.app.common.feign.*;
 import com.dankegongyu.app.common.log.LogFilter;
 import com.dankegongyu.app.common.log.RecordRpcLog;
+import com.dankegongyu.app.common.xxl.XxlAspect;
 import com.google.common.base.Splitter;
+import com.xxl.job.core.handler.IJobHandler;
 import feign.Client;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,5 +170,11 @@ public class DkAppAutoConfiguration {
     @Bean
     public DkCanalListener dkCanalListener() {
         return new DkCanalListener();
+    }
+
+    @Bean
+    @ConditionalOnClass(IJobHandler.class)
+    public XxlAspect xxlAspect() {
+        return new XxlAspect();
     }
 }
