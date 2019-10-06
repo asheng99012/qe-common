@@ -23,10 +23,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -100,13 +97,11 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
         public Target.HardCodedTarget target;
 
         public static Object proxy(Proxy proxy) {
-            Object object = Proxy.getInvocationHandler(proxy);
+//            Object object = Proxy.getInvocationHandler(proxy);
             try {
                 FeiginProxy feiginProxy = new FeiginProxy();
                 feiginProxy.proxy = proxy;
-                Field field = object.getClass().getDeclaredField("target");
-                field.setAccessible(true);
-                feiginProxy.target = (Target.HardCodedTarget) field.get(object);
+                feiginProxy.target = getRealTarget(getRealInvocationHandler(proxy));
                 Enhancer enhancer = new Enhancer();
                 enhancer.setInterfaces(new Class[]{feiginProxy.target.type()});
                 enhancer.setCallback(feiginProxy);
@@ -114,6 +109,29 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e.getCause());
             }
+        }
+
+        public static InvocationHandler getRealInvocationHandler(Proxy proxy) {
+            InvocationHandler handler = Proxy.getInvocationHandler(proxy);
+            if (handler instanceof Proxy) {
+                handler = getRealInvocationHandler((Proxy) handler);
+            }
+            try {
+                Field field = handler.getClass().getDeclaredField("delegate");
+                field.setAccessible(true);
+                Object val = field.get(handler);
+                if (val instanceof InvocationHandler)
+                    return (InvocationHandler) val;
+            } catch (NoSuchFieldException e) {
+            } catch (IllegalAccessException e) {
+            }
+            return handler;
+        }
+
+        public static Target.HardCodedTarget getRealTarget(Object object) throws NoSuchFieldException, IllegalAccessException {
+            Field field = object.getClass().getDeclaredField("target");
+            field.setAccessible(true);
+            return (Target.HardCodedTarget) field.get(object);
         }
 
         @Override
@@ -328,7 +346,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                     }
                     log.record(TraceIdUtils.getTraceId().split("-")[0]
                             , TraceIdUtils.getTraceId()
-                            , (Date) getSource().get("start"), new Date(), getSource().get("type").toString(), "", Current.SERVERIP
+                            , (Date) getSource().get("start"), new Date(), getSource().get("type") == null ? "" : getSource().get("type").toString(), "", Current.SERVERIP
                             , url, request.httpMethod().name(), request.headers()
                             , reqp, uri.getHost()
                             , (response != null && response.status() == 200) ? false : true, response != null ? response.status() : 0, getSource().get("body").toString());
