@@ -14,6 +14,7 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -38,6 +39,7 @@ public class Proxy implements MethodInterceptor {
     }
 
     public static <T> T proxy(Class<T> klass, String key) {
+        klass = (Class<T>) ClassUtils.getUserClass(klass);
         Proxy proxy = new Proxy();
         proxy.targetClass = klass;
         proxy.routingkey = key;
