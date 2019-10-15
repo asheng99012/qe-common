@@ -95,8 +95,12 @@ public class DkFeignContext extends FeignContext {
         @Override
         public Object postProcessAfterInitialization(Object bean, String beanName)
                 throws BeansException {
-            if (bean instanceof Proxy && Proxy.getInvocationHandler(bean).getClass().getTypeName().equals("feign.ReflectiveFeign$FeignInvocationHandler")) {
-                return DKLoadBalancerFeignClient.FeiginProxy.proxy((Proxy) bean);
+            if (bean instanceof Proxy) {
+                String name = Proxy.getInvocationHandler(bean).getClass().getTypeName();
+                if (name.equals("feign.ReflectiveFeign$FeignInvocationHandler"))
+                    return DKLoadBalancerFeignClient.FeiginProxy.proxy((Proxy) bean);
+                if (name.equals("com.danke.arch.commons.metrics.feign.MetricInvocationHandler"))
+                    return DKLoadBalancerFeignClient.FeiginProxy.proxy((Proxy) bean);
             }
             if (bean instanceof FeignContext && !(bean instanceof DkFeignContext)) {
                 return new DkFeignContext((FeignContext) bean, beanFactory);

@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class Proxy implements MethodInterceptor {
     Logger logger = LoggerFactory.getLogger(Proxy.class);
     private Class targetClass;

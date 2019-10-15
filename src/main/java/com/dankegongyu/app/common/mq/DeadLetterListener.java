@@ -1,7 +1,10 @@
 package com.dankegongyu.app.common.mq;
 
 import com.alibaba.fastjson.JSON;
+import com.dankegongyu.app.common.AppUtils;
+import com.google.common.base.Strings;
 import com.rabbitmq.client.Channel;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,7 +65,12 @@ public class DeadLetterListener extends BaseListener {
         } catch (Exception ex) {
         }
         if (execCount > getMaxCount(headers.get("originRoutingKey").toString())) {
-            sender.send(terminatedRoutingKey, msg, headers);
+            if (!Strings.isNullOrEmpty(terminatedRoutingKey)) {
+                sender.send(terminatedRoutingKey, msg, headers);
+            }
+            if (AppUtils.getBean(Mqlog.class) != null) {
+                AppUtils.getBean(Mqlog.class).log(message, "2", false, e.getMessage() + ":" + ExceptionUtils.getStackTrace(e));
+            }
         } else {
             sender.send(deadRoutingKey, msg, headers);
         }

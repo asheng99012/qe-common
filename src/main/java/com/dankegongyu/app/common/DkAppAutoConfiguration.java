@@ -1,14 +1,22 @@
 package com.dankegongyu.app.common;
 
+import com.dankegongyu.app.common.canal.DkCanalListener;
+import com.dankegongyu.app.common.dkmq.MQAspect;
+import com.dankegongyu.app.common.dkmq.MqConfiguration;
+import com.dankegongyu.app.common.dkmq.Mqlog;
+import com.dankegongyu.app.common.dkmq.Sender;
 import com.dankegongyu.app.common.feign.*;
 import com.dankegongyu.app.common.log.LogFilter;
 import com.dankegongyu.app.common.log.RecordRpcLog;
+import com.dankegongyu.app.common.xxl.XxlAspect;
 import com.google.common.base.Splitter;
+import com.xxl.job.core.handler.IJobHandler;
 import feign.Client;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -27,12 +35,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.util.List;
 
 @Configuration
-@AutoConfigureAfter({TraceFeignClientAutoConfiguration.class})
 public class DkAppAutoConfiguration {
-    @Bean
-    public DkFeignContext.DKFeignContextBeanPostProcessor dkFeignContextBeanPostProcessor(BeanFactory beanFactory) {
-        return new DkFeignContext.DKFeignContextBeanPostProcessor(beanFactory);
-    }
 
     @Autowired
     private Environment environment;
@@ -107,18 +110,6 @@ public class DkAppAutoConfiguration {
         return new AppUtils();
     }
 
-    @Bean
-    FeignRequestInterceptor feignRequestInterceptor() {
-        return new FeignRequestInterceptor();
-    }
-
-    @Bean
-    @ConditionalOnBean(CachingSpringLoadBalancerFactory.class)
-    public Client feignClient(CachingSpringLoadBalancerFactory cachingFactory,
-                              SpringClientFactory clientFactory) {
-        return new LoadBalancerFeignClient(new DKLoadBalancerFeignClient.DefaultClient(null, null), cachingFactory, clientFactory);
-    }
-
     @Bean(name = "springSessionDefaultRedisSerializer")
     public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer() {
         return new GenericJackson2JsonRedisSerializer();
@@ -173,4 +164,14 @@ public class DkAppAutoConfiguration {
         return new CommRpc();
     }
 
+    @Bean
+    public DkCanalListener dkCanalListener() {
+        return new DkCanalListener();
+    }
+
+    @Bean
+    @ConditionalOnClass(IJobHandler.class)
+    public XxlAspect xxlAspect() {
+        return new XxlAspect();
+    }
 }

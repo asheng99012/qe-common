@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.dankegongyu</groupId>
     <modelVersion>4.0.0</modelVersion>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.0.4-SNAPSHOT</version>
     <artifactId>dk-app-common</artifactId>
 
     <dependencies>
@@ -119,6 +119,7 @@
             <version>2.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+
 <!--
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -199,6 +200,24 @@
             <groupId>com.alibaba</groupId>
             <artifactId>easyexcel</artifactId>
             <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.danke.infra</groupId>
+            <artifactId>mq-client-starter</artifactId>
+            <version>2.0.6-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.danke.infra</groupId>
+            <artifactId>mq-client-binder-rabbit</artifactId>
+            <version>2.0.6-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.danke.arch.commons</groupId>
+            <artifactId>danke-commons-job-spring-starter</artifactId>
+            <version>2.3.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

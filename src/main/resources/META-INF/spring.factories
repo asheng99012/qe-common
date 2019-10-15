@@ -1,2 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.dankegongyu.app.common.DkAppAutoConfiguration
+com.dankegongyu.app.common.DkAppAutoConfiguration\
+,com.dankegongyu.app.common.feign.DkFeignAutoConfiguration\
+,com.dankegongyu.app.common.dkmq.MqConfiguration

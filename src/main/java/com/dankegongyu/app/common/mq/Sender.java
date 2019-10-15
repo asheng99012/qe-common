@@ -1,9 +1,6 @@
 package com.dankegongyu.app.common.mq;
 
-import com.dankegongyu.app.common.Current;
-import com.dankegongyu.app.common.CurrentContext;
-import com.dankegongyu.app.common.JsonUtils;
-import com.dankegongyu.app.common.TraceIdUtils;
+import com.dankegongyu.app.common.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -14,7 +11,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-
+@Deprecated
 public class Sender {
     static Logger logger = LoggerFactory.getLogger(Sender.class);
     RabbitTemplate rabbitTemplate;
@@ -25,8 +22,8 @@ public class Sender {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void setDefaultRoutingKey(String defaultRoutingKey){
-        this.defaultRoutingKey=defaultRoutingKey;
+    public void setDefaultRoutingKey(String defaultRoutingKey) {
+        this.defaultRoutingKey = defaultRoutingKey;
     }
 
     public void send(String routingKey, Object msg) {
@@ -73,6 +70,9 @@ public class Sender {
         @Override
         public void confirm(CorrelationData correlationData, boolean ack, String cause) {
             logger.info("mq 发送确认回执 {}|{}|{}", correlationData, ack, cause);
+            if (AppUtils.getBean(Mqlog.class) != null) {
+                AppUtils.getBean(Mqlog.class).log(correlationData.getReturnedMessage(), "1", ack, cause);
+            }
         }
     }
 
