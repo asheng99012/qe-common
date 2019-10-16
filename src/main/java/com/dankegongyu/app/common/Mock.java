@@ -84,7 +84,9 @@ public class Mock {
         public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
             if (method.getName().equals("execute") && objects.length == 1 && objects[0] instanceof HttpRequestBase) {
                 HttpRequestBase request = (HttpRequestBase) objects[0];
-                request.setURI(new URI(AppUtils.getBean(Mock.class).mockUrl(request.getURI().toString())));
+                if(AppUtils.getBean(Mock.class)!=null) {
+                    request.setURI(new URI(AppUtils.getBean(Mock.class).mockUrl(request.getURI().toString())));
+                }
             }
             return methodProxy.invoke(this.client, objects);
         }

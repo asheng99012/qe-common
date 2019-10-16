@@ -54,7 +54,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                 }
             }
         }
-        if ((Boolean) DefaultClient.getSource().get("redirect")) {
+        if (DefaultClient.getSource().containsKey("redirect") && (Boolean) DefaultClient.getSource().get("redirect")) {
             return ((LoadBalancerFeignClient) this.getDelegate()).getDelegate().execute(request, options);
         }
         return this.getDelegate().execute(request, options);

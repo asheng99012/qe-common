@@ -12,7 +12,7 @@ public class AppUtils implements ApplicationContextAware {
     private static ApplicationContext appContext = null;
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException{
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         AppUtils.appContext = applicationContext;
     }
 
@@ -30,7 +30,12 @@ public class AppUtils implements ApplicationContextAware {
 
     //通过class获取Bean.
     public static <T> T getBean(Class<T> clazz) {
-        return getApplicationContext().getBean(clazz);
+        try {
+            return getApplicationContext().getBean(clazz);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     //通过name,以及Clazz返回指定的Bean
