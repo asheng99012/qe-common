@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SwaggerUtils {
-    public static void createYaml(String groupName, String groupId, String artifactId, String version) throws IOException {
+    public static void createYaml(String groupName, String groupId, String artifactId, String version, String contactName, String contactEmail) throws IOException {
         Documentation documentation = AppUtils.getBean(DocumentationCache.class).documentationByGroup(groupName);
         Swagger swagger = AppUtils.getBean(ServiceModelToSwagger2Mapper.class).mapDocumentation(documentation);
         swagger.setBasePath(null);
@@ -69,8 +69,12 @@ public class SwaggerUtils {
             }
         }.send("").toString();
 
+        ObjectNode externalDocs = (ObjectNode) new ObjectMapper().readTree("{\"url\":\"\"}");
+        ObjectNode contact = (ObjectNode) new ObjectMapper().readTree("{\"name\":\"" + contactName + "\",\"email\":\"" + contactEmail + "\"}");
         ObjectNode jsonNodeTree = (ObjectNode) new ObjectMapper().readTree(openApi);
+        jsonNodeTree.put("externalDocs", externalDocs);
         ObjectNode jsonNode = (ObjectNode) jsonNodeTree.get("info");
+        jsonNode.put("contact", contact);
         jsonNode.put("groupId", groupId);
         jsonNode.put("artifactId", artifactId);
         jsonNode.put("version", version);
