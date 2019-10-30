@@ -17,6 +17,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -51,8 +52,8 @@ public class Current implements Filter, ApplicationContextAware {
     public static final String SERVERIP = Current.getNewLocalIP();  //当前服务IP
     private static String errorPage = "/error";
     private static List<String> excludes = new ArrayList<>();
-    private static boolean isApi=false;
-    private static boolean isDealError=true;
+    private static boolean isApi = false;
+    private static boolean isDealError = true;
 
     public Current() {
     }
@@ -410,7 +411,7 @@ public class Current implements Filter, ApplicationContextAware {
             }
             filterChain.doFilter(getRequest(), getResponse());
         } catch (Exception e) {
-            if(!isDealError)
+            if (!isDealError)
                 throw e;
 //            logger.error(e.getMessage(), e);
             ApiResult result = GlobalExceptionHandler.getErrorResult(e);
@@ -464,6 +465,13 @@ public class Current implements Filter, ApplicationContextAware {
             msg.add(JsonUtils.toJson(Current.getCookie()));
         }
         msg.add("SERVER IP : " + Current.SERVERIP);
+        if (AppUtils.getBean(Environment.class) != null) {
+            Environment environment = AppUtils.getBean(Environment.class);
+            String appName = environment.getProperty("spring.application.name");
+            if (!Strings.isNullOrEmpty(appName)) {
+                msg.add("AppName : " + appName);
+            }
+        }
         msg.add("=======================================");
         msg.add("");
         return StringUtils.join(msg, " <br />");
