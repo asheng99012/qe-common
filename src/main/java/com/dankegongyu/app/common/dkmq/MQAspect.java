@@ -48,6 +48,7 @@ public class MQAspect {
         } finally {
             log.info("发送数据：" + JsonUtils.toJson(msg));
             TraceIdUtils.clear();
+            CurrentContext.clear();
             if (mqlog != null) {
                 mqlog.log(key, msg.getTopic(), msg.getTag(), msg.getBornHost(),
                         msg.getPayload(), msg, 0, "com.danke.infra.mq.common.producer.MessageTemplate",
@@ -89,6 +90,7 @@ public class MQAspect {
         } finally {
             log.info("消费数据：" + JsonUtils.toJson(msg) + ",结果：" + errmsg);
             TraceIdUtils.clear();
+            CurrentContext.clear();
             if (mqlog != null) {
 
                 mqlog.log(msg.getMsgId(), msg.getTopic(), msg.getTag(),
