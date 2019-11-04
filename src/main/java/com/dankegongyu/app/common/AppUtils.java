@@ -33,7 +33,7 @@ public class AppUtils implements ApplicationContextAware {
         try {
             return getApplicationContext().getBean(clazz);
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
     }

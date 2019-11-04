@@ -32,4 +32,8 @@ public class TraceIdUtils {
         }
         return MDC.get(TRACEID);
     }
+
+    public static void clear() {
+        CurrentContext.set(TRACEID, null);
+    }
 }
