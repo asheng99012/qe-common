@@ -37,12 +37,14 @@ public class DkCanalListener implements ApplicationListener<ContextRefreshedEven
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        tableMap = Maps.newConcurrentMap();
+
         logger.info("CanalListener init");
-        processMap = Maps.newConcurrentMap();
+
         if (AppUtils.getApplicationContext() == null) return;
 
         Map<String, Object> beansWithAnnotationMap = AppUtils.getApplicationContext().getBeansWithAnnotation(Filter.class);
+        tableMap = Maps.newConcurrentMap();
+        processMap = Maps.newConcurrentMap();
         for (Map.Entry<String, Object> entry : beansWithAnnotationMap.entrySet()) {
             Object bean = entry.getValue();
             Filter value = AnnotationUtils.getAnnotation(bean.getClass(), Filter.class);
@@ -76,7 +78,7 @@ public class DkCanalListener implements ApplicationListener<ContextRefreshedEven
         return tableMap.get(tableName);
     }
 
-    void doProcess(Process process, List<Message> msgList) {
+    public void doProcess(Process process, List<Message> msgList) {
         for (Message message : msgList) {
             try {
                 process.doProcess(message);
