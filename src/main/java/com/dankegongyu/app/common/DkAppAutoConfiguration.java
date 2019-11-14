@@ -8,6 +8,7 @@ import com.dankegongyu.app.common.dkmq.Sender;
 import com.dankegongyu.app.common.feign.*;
 import com.dankegongyu.app.common.log.LogFilter;
 import com.dankegongyu.app.common.log.RecordRpcLog;
+import com.dankegongyu.app.common.log.RequestLog;
 import com.dankegongyu.app.common.xxl.XxlAspect;
 import com.google.common.base.Splitter;
 import com.xxl.job.core.handler.IJobHandler;
@@ -176,5 +177,17 @@ public class DkAppAutoConfiguration {
     @ConditionalOnClass(IJobHandler.class)
     public XxlAspect xxlAspect() {
         return new XxlAspect();
+    }
+
+    @Bean(name = "localLog")
+    @ConditionalOnProperty(prefix = "rpclog.localLog", name = "enabled")
+    public RequestLog mongolocalLog() {
+        return new RequestLog();
+    }
+
+    @Bean(name = "rpcLog")
+    @ConditionalOnProperty(prefix = "rpclog.rpcLog", name = "enabled")
+    public RequestLog mongorpcLog() {
+        return new RequestLog();
     }
 }

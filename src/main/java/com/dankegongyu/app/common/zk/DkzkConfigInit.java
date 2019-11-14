@@ -23,6 +23,7 @@ public class DkzkConfigInit implements ApplicationListener<ContextRefreshedEvent
     @Autowired
     protected DkzkClient zkClient;
     protected String rootKey;
+    protected boolean isInit = false;
 
     public String getRootKey() {
         return rootKey;
@@ -34,14 +35,17 @@ public class DkzkConfigInit implements ApplicationListener<ContextRefreshedEvent
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        if (event.getApplicationContext().getParent() == null) {
-            logger.info("开始处理事件:{}", event.getClass().getName());
-            process(event);
-        }
+//        if (event.getApplicationContext().getParent() == null) {
+        logger.info("开始处理事件:{}", event.getClass().getName());
+        process(event);
+//        }
     }
 
     public void process(ContextRefreshedEvent event) {
+        if (isInit || AppUtils.getApplicationContext() == null) return;
         Map<String, Object> beansWithAnnotationMap = AppUtils.getApplicationContext().getBeansWithAnnotation(DkzkConfig.class);
+        if (beansWithAnnotationMap == null && beansWithAnnotationMap.isEmpty()) return;
+        isInit = true;
         for (Map.Entry<String, Object> entry : beansWithAnnotationMap.entrySet()) {
             Object bean = entry.getValue();
             dealKLass(bean);

@@ -39,10 +39,15 @@ public class DkCanalListener implements ApplicationListener<ContextRefreshedEven
     public void onApplicationEvent(ContextRefreshedEvent event) {
 
         logger.info("CanalListener init");
-
+        if (tableMap != null) {
+            logger.info("CanalListener already inited");
+            return;
+        }
         if (AppUtils.getApplicationContext() == null) return;
 
         Map<String, Object> beansWithAnnotationMap = AppUtils.getApplicationContext().getBeansWithAnnotation(Filter.class);
+        if (beansWithAnnotationMap.size() == 0) return;
+
         tableMap = Maps.newConcurrentMap();
         processMap = Maps.newConcurrentMap();
         for (Map.Entry<String, Object> entry : beansWithAnnotationMap.entrySet()) {
