@@ -27,7 +27,8 @@ public class FeignFilter implements Filter {
         try {
             chain.doFilter(request, response);
         }finally {
-            CurrentContext.clear();
+//            CurrentContext.clear();
+            //todo 不能清空
         }
     }
 

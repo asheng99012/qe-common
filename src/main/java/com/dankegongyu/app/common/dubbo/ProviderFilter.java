@@ -32,6 +32,7 @@ public class ProviderFilter implements Filter {
             return result;
         } finally {
             CurrentContext.clear();
+            //todo 不能清空
         }
 
     }

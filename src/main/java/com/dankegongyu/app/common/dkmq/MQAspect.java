@@ -47,8 +47,9 @@ public class MQAspect {
             throw new BusinessException(JsonUtils.toJson(msg) + ":" + t.getMessage(), t.getCause());
         } finally {
             log.info("发送数据：" + JsonUtils.toJson(msg));
-            TraceIdUtils.clear();
-            CurrentContext.clear();
+//            TraceIdUtils.clear();
+//            CurrentContext.clear();
+            //todo 不能清空
             if (mqlog != null) {
                 mqlog.log(key, msg.getTopic(), msg.getTag(), msg.getBornHost(),
                         msg.getPayload(), msg, 0, "com.danke.infra.mq.common.producer.MessageTemplate",
