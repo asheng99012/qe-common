@@ -11,6 +11,7 @@ import com.dankegongyu.app.common.log.RecordRpcLog;
 import com.dankegongyu.app.common.log.RequestLog;
 import com.dankegongyu.app.common.xxl.XxlAspect;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.xxl.job.core.handler.IJobHandler;
 import feign.Client;
 import org.springframework.beans.factory.BeanFactory;
@@ -119,17 +120,20 @@ public class DkAppAutoConfiguration {
         return new GenericJackson2JsonRedisSerializer();
     }
 
-
     @Bean(name = "localLog")
     @ConditionalOnMissingBean(name = "localLog")
     public RecordRpcLog localLog() {
-        return new RecordRpcLog.Default();
+        if (Strings.isNullOrEmpty(environment.getProperty("rpclog.localLog.enabled")))
+            return new RecordRpcLog.Default();
+        else return new RequestLog();
     }
 
     @Bean(name = "rpcLog")
     @ConditionalOnMissingBean(name = "rpcLog")
     public RecordRpcLog rpcLog() {
-        return new RecordRpcLog.Default();
+        if (Strings.isNullOrEmpty(environment.getProperty("rpclog.rpcLog.enabled")))
+            return new RecordRpcLog.Default();
+        else return new RequestLog();
     }
 
 
@@ -179,15 +183,5 @@ public class DkAppAutoConfiguration {
         return new XxlAspect();
     }
 
-    @Bean(name = "localLog")
-    @ConditionalOnProperty(prefix = "rpclog.localLog", name = "enabled")
-    public RequestLog mongolocalLog() {
-        return new RequestLog();
-    }
 
-    @Bean(name = "rpcLog")
-    @ConditionalOnProperty(prefix = "rpclog.rpcLog", name = "enabled")
-    public RequestLog mongorpcLog() {
-        return new RequestLog();
-    }
 }
