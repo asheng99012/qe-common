@@ -4,6 +4,7 @@ import com.dankegongyu.app.common.JsonUtils;
 import com.dankegongyu.app.common.TraceIdUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.Md5Crypt;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
@@ -32,7 +33,7 @@ public class Mqlog {
         String sql = "insert into " + tableName + " (`traceid`,`key`,`exchange`,`routingkey`,`ip`,`message`,`exeCount`,`create_at`,`type`,`status`,`result`,`StartDeliverTime`,`appNamme`) values({traceid},{key},{exchange},{routingkey},{ip},{message},{exeCount},{create_at},{type},{status},{result},{StartDeliverTime},{appNamme})";
         Map param = new HashMap() {{
             put("traceid", TraceIdUtils.getTraceId());
-            put("key", key);
+            put("key", DigestUtils.md5Hex(JsonUtils.toJson(message)));
             put("exchange", exchange);
             put("routingkey", routingkey);
             put("ip", ip);
