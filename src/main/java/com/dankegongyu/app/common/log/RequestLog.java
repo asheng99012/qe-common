@@ -56,6 +56,13 @@ public class RequestLog implements RecordRpcLog {
 
     public List<Map> getList(Map param) {
         String sql = "select * from " + tableName + " where appNamme={appNamme} and traceid={traceid} and start_at>={start_at} and end_at <={end_at} and type={type}  and isError={isError} order by start_at desc";
-        return SqlExecutor.execSql(sql, param, Map.class, dbName);
+        List<Map> ret = SqlExecutor.execSql(sql, param, Map.class, dbName);
+        if (ret != null && ret.size() > 0) {
+            ret.forEach(map -> {
+                map.put("paramter", JsonUtils.toJson(map.get("paramter")));
+                map.put("result", JsonUtils.toJson(map.get("result")));
+            });
+        }
+        return ret;
     }
 }
