@@ -37,6 +37,7 @@ public class MQAspect {
         msg.putUserProperties(CurrentContext.class.getName(), CurrentContext.toJson());
         String errmsg = "";
         String key = "";
+        Date start=new Date();
         try {
             SendMessageResult ret = (SendMessageResult) point.proceed();
             key = ret.getMessageId();
@@ -52,7 +53,7 @@ public class MQAspect {
             if (mqlog != null) {
                 mqlog.log(key, msg.getTopic(), msg.getTag(), msg.getBornHost(),
                         msg.getPayload(), msg, 0, "com.danke.infra.mq.common.producer.MessageTemplate",
-                        Strings.isNullOrEmpty(errmsg) ? "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()));
+                        Strings.isNullOrEmpty(errmsg) ? "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()),new Date().getTime()-start.getTime());
             }
         }
     }
@@ -60,6 +61,7 @@ public class MQAspect {
 
     @Around("@annotation(com.danke.infra.mq.common.annotation.Message)")
     public Object consumer(ProceedingJoinPoint point) {
+        Date start=new Date();
         //todo 解析 自定义header
         Msg msg = null;
         String type = "";
@@ -95,7 +97,7 @@ public class MQAspect {
 
                 mqlog.log(msg.getMsgId(), msg.getTopic(), msg.getTag(),
                         Current.getNewLocalIP(), msg.getPayload(), msg, msg.getReconsumeTimes(), type,
-                        Strings.isNullOrEmpty(errmsg) ? "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()));
+                        Strings.isNullOrEmpty(errmsg) ? "suuc" : "error", errmsg, new Date(msg.getStartDeliverTime()),new Date().getTime()-start.getTime());
             }
         }
     }

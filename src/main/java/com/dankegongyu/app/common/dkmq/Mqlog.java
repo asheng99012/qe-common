@@ -29,8 +29,8 @@ public class Mqlog {
     @Value("${mqlog.appNamme}")
     private String appNamme;
 
-    public void log(String key, String exchange, String routingkey, String ip, Object message, Object ext, int exeCount, String type, String status, String result, Date StartDeliverTime) {
-        String sql = "insert into " + tableName + " (`traceid`,`key`,`exchange`,`routingkey`,`ip`,`message`,`exeCount`,`create_at`,`type`,`status`,`result`,`StartDeliverTime`,`appNamme`) values({traceid},{key},{exchange},{routingkey},{ip},{message},{exeCount},{create_at},{type},{status},{result},{StartDeliverTime},{appNamme})";
+    public void log(String key, String exchange, String routingkey, String ip, Object message, Object ext, int exeCount, String type, String status, String result, Date StartDeliverTime, Long cost) {
+        String sql = "insert into " + tableName + " (`traceid`,`key`,`exchange`,`routingkey`,`ip`,`message`,`exeCount`,`create_at`,`type`,`status`,`result`,`StartDeliverTime`,`appNamme`,`cost`) values({traceid},{key},{exchange},{routingkey},{ip},{message},{exeCount},{create_at},{type},{status},{result},{StartDeliverTime},{appNamme},{cost})";
         Map param = new HashMap() {{
             put("traceid", TraceIdUtils.getTraceId());
             put("key", DigestUtils.md5Hex(JsonUtils.toJson(message)));
@@ -46,6 +46,7 @@ public class Mqlog {
             put("result", result);
             put("StartDeliverTime", StartDeliverTime);
             put("appNamme", appNamme);
+            put("cost", cost);
         }};
         if (isExclude(param.get("routingkey").toString())) return;
         try {
