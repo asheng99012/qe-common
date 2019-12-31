@@ -3,17 +3,44 @@ package com.dankegongyu.app.common.excel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
-import com.dankegongyu.app.common.CsvUtils;
+import org.springframework.cglib.beans.BeanMap;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-public class Writer {
+public class XWriter {
+    private OutputStream out;
+    private ExcelWriter writer;
+    Sheet sheet;
     private LinkedHashMap<String, Header> headers;
-    private List datas;
+    private boolean isClose = false;
+    private String path;
 
-    public Writer(LinkedHashMap<String, Object> header, List datas) {
-        this.datas = datas;
+    public XWriter(String path) {
+        try {
+            this.path = path;
+            out = new FileOutputStream(path);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        }
+        init();
+    }
+
+    public XWriter() {
+        out = new ByteArrayOutputStream();
+        init();
+    }
+
+    public void init() {
+        writer = new ExcelWriter(out, ExcelTypeEnum.XLSX, false);
+        sheet = new Sheet(1, 0);
+        sheet.setSheetName("sheet0");
+    }
+
+    public XWriter setHeaders(LinkedHashMap<String, Object> header) {
         LinkedHashMap<String, Header> hs = new LinkedHashMap<>();
         header.forEach((key, val) -> {
             if (val instanceof String) {
@@ -23,48 +50,69 @@ public class Writer {
             }
         });
         this.headers = hs;
-    }
-
-    public List<List<String>> getDatas() {
         List<List<String>> list = new ArrayList<>();
         List<String> columns = new ArrayList<String>();
         headers.forEach((key, val) -> {
             columns.add(key);
         });
         list.add(columns);
+        writer.write0(list, sheet);
+        return this;
+    }
 
+    public void setAutoHeader(Object data) {
+        Map map;
+        if (data instanceof Map) {
+            map = (Map) data;
+        } else {
+            map = BeanMap.create(data);
+        }
+        LinkedHashMap<String, Object> header = new LinkedHashMap<>();
+        map.keySet().forEach((key) -> {
+            header.put(String.valueOf(key), "{" + key + "}");
+        });
+        setHeaders(header);
+    }
+
+    public XWriter writeData(List datas) {
+        if (headers == null) setAutoHeader(datas.get(0));
+        List<List<String>> list = new ArrayList<>();
         datas.forEach((obj) -> {
             List<String> data = new ArrayList<String>();
-            columns.forEach((key) -> {
+            headers.forEach((key, val) -> {
                 data.add(headers.get(key).render(obj));
             });
             list.add(data);
         });
-
-        return list;
+        writer.write0(list, sheet);
+        return this;
     }
 
     public InputStream getInputStream() {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        writeTo(out);
-        return new ByteArrayInputStream(out.toByteArray());
+        if (out instanceof ByteArrayOutputStream) {
+            return new ByteArrayInputStream(((ByteArrayOutputStream) out).toByteArray());
+        }
+        if (out instanceof FileOutputStream) {
+            close();
+            try {
+                return new FileInputStream(new File(path));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e.getMessage(), e.getCause());
+            }
+        }
+        return null;
     }
 
-    public void writeTo(OutputStream out) {
-        writeTo(out, "sheet0");
-    }
-
-    public void writeTo(String path, String sheetName) throws FileNotFoundException {
-        writeTo(new FileOutputStream(path), sheetName);
-    }
-
-    public void writeTo(OutputStream out, String sheetName) {
-        ExcelWriter writer = new ExcelWriter(out, ExcelTypeEnum.XLSX, false);
-        //写第一个sheet, sheet1  数据全是List<String> 无模型映射关系
-        Sheet sheet1 = new Sheet(1, 0);
-        sheet1.setSheetName(sheetName);
-        writer.write0(getDatas(), sheet1);
+    public void close() {
+        if (isClose) return;
         writer.finish();
+        try {
+            if (out != null)
+                out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        isClose = true;
     }
 
 }
