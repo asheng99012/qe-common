@@ -2,5 +2,5 @@ package com.dankegongyu.app.common.excel;
 
 @FunctionalInterface
 public interface Header {
-    public String render(Object obj);
+    public <T> T render(Object obj);
 }
