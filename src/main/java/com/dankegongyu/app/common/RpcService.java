@@ -38,6 +38,8 @@ public class RpcService {
         } catch (NoSuchBeanDefinitionException e) {
             instance = klass.newInstance();
         }
+        if (instance == null)
+            instance = klass.newInstance();
         return instance;
     }
 
