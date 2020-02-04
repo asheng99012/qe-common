@@ -71,7 +71,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                 try {
                     field = client.getClass().getField("delegate");
                 } catch (NoSuchFieldException e1) {
-
+                    throw new RuntimeException(e1);
                 }
             }
             if (field != null) {
@@ -81,7 +81,13 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                     if (_c.getClass().getName().equals(Client.Default.class.getName())) {
                         field.set(client, new DefaultClient());
                     } else {
-                        replaceClient(_c);
+                        try {
+                            replaceClient(_c);
+                        } catch (Exception e) {
+                            if (_c instanceof feign.Client) {
+                                field.set(client, ClientProxy.proxy(_c));
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -149,7 +155,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
     }
 
     public static class DefaultClient implements Client {
-        Logger logger = LoggerFactory.getLogger(DefaultClient.class);
+        static Logger logger = LoggerFactory.getLogger(DefaultClient.class);
         private final static ThreadLocal<Map<String, Object>> resources = new NamedThreadLocal<Map<String, Object>>(DefaultClient.class.getName());
         private final SSLSocketFactory sslContextFactory;
         private final HostnameVerifier hostnameVerifier;
@@ -174,11 +180,13 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             try {
                 HttpURLConnection connection = convertAndSend(request, options);
                 response = convertResponse(connection, request);
+                log(request, response);
             } catch (Exception e) {
                 getSource().put("body", e.getMessage());
+                log(request, response);
                 throw e;
             }
-            log(request, response);
+
             return response;
         }
 
@@ -292,7 +300,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
                     .build();
         }
 
-        String inputStream2String(InputStream inputStream) {
+        public static String inputStream2String(InputStream inputStream) {
             try {
                 ByteArrayOutputStream result = new ByteArrayOutputStream();
                 byte[] buffer = new byte[1024];
@@ -307,7 +315,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             }
         }
 
-        InputStream string2InputStream(String str) {
+        public static InputStream string2InputStream(String str) {
             ByteArrayInputStream stream = new ByteArrayInputStream(str.getBytes());
             return stream;
         }
@@ -325,7 +333,7 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             resources.remove();
         }
 
-        public void log(Request request, Response response) {
+        public static void log(Request request, Response response) {
             try {
                 RecordRpcLog log = (RecordRpcLog) AppUtils.getBean("rpcLog");
                 if (log != null) {
@@ -354,6 +362,56 @@ public class DKLoadBalancerFeignClient extends LoadBalancerFeignClient {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
+        }
+    }
+
+
+    public static class ClientProxy implements MethodInterceptor {
+        public feign.Client proxy;
+
+        public static Object proxy(feign.Client proxy) {
+//            Object object = Proxy.getInvocationHandler(proxy);
+            try {
+                ClientProxy clientProxy = new ClientProxy();
+                clientProxy.proxy = proxy;
+                Enhancer enhancer = new Enhancer();
+                enhancer.setInterfaces(new Class[]{feign.Client.class});
+                enhancer.setCallback(clientProxy);
+                return enhancer.create();
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e.getCause());
+            }
+        }
+
+        @Override
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+            Object ret;
+            if (method.getName().equals("execute")) {
+                DefaultClient.getSource().put("start", new Date());
+                Request request = (Request) objects[0];
+                try {
+                    ret = method.invoke(proxy, objects);
+                    Response response = (Response) ret;
+                    Integer lenth = response.body().length();
+                    DefaultClient.getSource().put("body", DefaultClient.inputStream2String(response.body().asInputStream()));
+                    InputStream stream = DefaultClient.string2InputStream(DefaultClient.getSource().get("body").toString());
+                    ret = Response.builder()
+                            .status(response.status())
+                            .reason(response.reason())
+                            .headers(response.headers())
+                            .request(response.request())
+                            .body(stream, lenth)
+                            .build();
+                    DefaultClient.log(request, response);
+                } catch (Exception e) {
+                    DefaultClient.getSource().put("body", e.getMessage());
+                    DefaultClient.log(request, null);
+                    throw e;
+                }
+            } else {
+                ret = method.invoke(proxy, objects);
+            }
+            return ret;
         }
     }
 }
